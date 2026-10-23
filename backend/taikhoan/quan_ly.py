@@ -32,8 +32,8 @@ def add_user():
         if not email.endswith('@wru.vn'):
             return jsonify({'error': 'Email yêu cầu phải đúng định dạng tên miền @wru.vn'}), 400
 
-    # Mật khẩu mặc định là mã/tên tài khoản nếu không truyền mật khẩu
-    password = data.get('password', '').strip() or username
+    # Mật khẩu mặc định là 123456 nếu không truyền mật khẩu
+    password = data.get('password', '').strip() or '123456'
 
     full_name = data.get('full_name', '').strip() or None
     new_user = User(
@@ -156,11 +156,11 @@ def reset_password(id):
     if not user:
         return jsonify({'error': 'Không tìm thấy tài khoản'}), 404
 
-    # Đặt lại mật khẩu mặc định là mã tài khoản (username) theo UseCase 3.11
-    user.set_password(user.username)
+    # Đặt lại mật khẩu mặc định là 123456
+    user.set_password('123456')
     try:
         db.session.commit()
-        return jsonify({'message': f'Đã đặt lại mật khẩu của tài khoản {user.username} về mặc định (chính là username)'}), 200
+        return jsonify({'message': f'Đã đặt lại mật khẩu của tài khoản {user.username} về mặc định: 123456'}), 200
     except Exception:
         db.session.rollback()
         return jsonify({'error': 'Lỗi cơ sở dữ liệu khi đặt lại mật khẩu'}), 500

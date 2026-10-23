@@ -1434,7 +1434,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 statusContainer.innerHTML = `
                     <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; margin: 0;">
                         <input type="checkbox" id="autoCreateAccountCheckbox" checked style="width: 16px; height: 16px;">
-                        <span>Tự động cấp tài khoản đăng nhập (Tên đăng nhập & Mật khẩu theo Mã SV)</span>
+                        <span>Tự động cấp tài khoản đăng nhập (Tên đăng nhập: Mã SV | Mật khẩu mặc định: 123456)</span>
                     </label>
                 `;
             }
@@ -1884,7 +1884,7 @@ window.openDeleteModal = function(id, name) {
 
 window.quickCreateStudentAccount = async function(id, name, code) {
     const defaultUsername = (code || `sv${id}`).toLowerCase().trim();
-    const promptMsg = `Cấp tài khoản đăng nhập cho sinh viên "${name}":\n\nNhập tên đăng nhập:`;
+    const promptMsg = `Cấp tài khoản đăng nhập cho sinh viên "${name}":\n\nNhập tên đăng nhập (Mật khẩu mặc định: 123456):`;
     const inputUsername = prompt(promptMsg, defaultUsername);
     if (inputUsername === null) return;
     const username = inputUsername.trim() || defaultUsername;

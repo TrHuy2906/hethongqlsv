@@ -86,7 +86,7 @@ def add_student():
             suffix += 1
         u_email = email.strip() if (email and email.strip().endswith('@wru.vn')) else None
         user = User(username=username, role=0, email=u_email, full_name=name, status='HoatDong')
-        user.set_password(username)
+        user.set_password('123456')
         db.session.add(user)
         db.session.flush()
         account_id = user.id
@@ -306,7 +306,7 @@ def create_student_account(id):
         full_name=student.name,
         status='HoatDong'
     )
-    user.set_password(username) # Mật khẩu mặc định bằng username
+    user.set_password('123456') # Mật khẩu mặc định là 123456
     db.session.add(user)
     db.session.flush()
 
@@ -314,7 +314,7 @@ def create_student_account(id):
     try:
         db.session.commit()
         return jsonify({
-            'message': f'Cấp tài khoản thành công! Tên đăng nhập: {username} | Mật khẩu: {username}',
+            'message': f'Cấp tài khoản thành công! Tên đăng nhập: {username} | Mật khẩu mặc định: 123456',
             'user': user.to_dict(),
             'student': student.to_dict()
         }), 201

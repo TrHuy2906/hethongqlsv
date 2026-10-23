@@ -399,9 +399,9 @@ function setupEventListeners() {
             });
             const data = await res.json();
             if (res.ok) {
-                const effectivePwd = password || username;
+                const effectivePwd = password || '123456';
                 const linkMsg = profileId ? ' và liên kết hồ sơ thành công!' : ' và đồng bộ tạo hồ sơ thành công!';
-                showToast(`Tạo tài khoản${linkMsg} Tên đăng nhập & Mật khẩu: ${effectivePwd}`, 'success');
+                showToast(`Tạo tài khoản${linkMsg} Tên đăng nhập: ${username} | Mật khẩu: ${effectivePwd}`, 'success');
                 modal?.classList.remove('active');
                 loadUsers();
             } else {
