@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let cnList = [];
     let nkList = [];
     let studentList = [];
+    let lecturerList = [];
 
     async function fetchStudents() {
         try {
@@ -18,10 +19,63 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (res.ok) {
                 studentList = await res.json();
+                populateMonitorDropdown();
             }
         } catch (e) {
             console.error("Error fetching students for enrollment count", e);
         }
+    }
+
+    async function fetchLecturers() {
+        try {
+            const res = await fetch('/lecturers', {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (res.ok) {
+                lecturerList = await res.json();
+                populateAdvisorDropdown();
+            }
+        } catch (e) {
+            console.error("Error fetching lecturers", e);
+        }
+    }
+
+    function populateAdvisorDropdown(selectedVal = '') {
+        const select = document.getElementById('lopAdvisor');
+        if (!select) return;
+        select.innerHTML = '<option value="">-- Chưa phân công GVCN --</option>';
+        lecturerList.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l.name;
+            opt.textContent = `${l.name} (${l.lecturer_code || 'GV'})`;
+            select.appendChild(opt);
+        });
+        if (selectedVal && !Array.from(select.options).some(o => o.value === selectedVal)) {
+            const opt = document.createElement('option');
+            opt.value = selectedVal;
+            opt.textContent = selectedVal;
+            select.appendChild(opt);
+        }
+        if (selectedVal) select.value = selectedVal;
+    }
+
+    function populateMonitorDropdown(selectedVal = '') {
+        const select = document.getElementById('lopMonitor');
+        if (!select) return;
+        select.innerHTML = '<option value="">-- Chưa bầu lớp trưởng --</option>';
+        studentList.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.name;
+            opt.textContent = `${s.name} (${s.student_code || s.class_name || 'SV'})`;
+            select.appendChild(opt);
+        });
+        if (selectedVal && !Array.from(select.options).some(o => o.value === selectedVal)) {
+            const opt = document.createElement('option');
+            opt.value = selectedVal;
+            opt.textContent = selectedVal;
+            select.appendChild(opt);
+        }
+        if (selectedVal) select.value = selectedVal;
     }
 
     async function fetchChuyenNganh() {
@@ -246,8 +300,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('lopModalTitle').textContent = 'Thêm Lớp Mới';
         lopForm.reset();
         document.getElementById('lopId').value = '';
-        document.getElementById('lopAdvisor').value = '';
-        document.getElementById('lopMonitor').value = '';
+        populateAdvisorDropdown('');
+        populateMonitorDropdown('');
         lopModal.classList.add('active');
     });
 
@@ -264,8 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('lopName').value = lop.name;
             document.getElementById('lopMajorId').value = lop.major_id;
             document.getElementById('lopCohortId').value = lop.cohort_id;
-            document.getElementById('lopAdvisor').value = lop.advisor || '';
-            document.getElementById('lopMonitor').value = lop.monitor || '';
+            populateAdvisorDropdown(lop.advisor || '');
+            populateMonitorDropdown(lop.monitor || '');
             lopModal.classList.add('active');
         }
     };
@@ -337,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function init() {
-        await Promise.all([fetchChuyenNganh(), fetchNienKhoa(), fetchStudents()]);
+        await Promise.all([fetchChuyenNganh(), fetchNienKhoa(), fetchStudents(), fetchLecturers()]);
         await fetchLop();
     }
     init();
