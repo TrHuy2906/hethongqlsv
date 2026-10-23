@@ -32,7 +32,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "eg20eqyzviq68a"
+            "uid": "prometheus"
           },
           "expr": "up{job=\"flask_app\"}"
         }
@@ -71,7 +71,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "eg20eqyzviq68a"
+            "uid": "prometheus"
           },
           "expr": "up{job=\"prometheus\"}"
         }
@@ -91,7 +91,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "eg20eqyzviq68a"
+            "uid": "prometheus"
           },
           "expr": "sum(flask_http_request_total)"
         }
@@ -111,7 +111,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "eg20eqyzviq68a"
+            "uid": "prometheus"
           },
           "expr": "sum(flask_http_request_total) by (status)",
           "legendFormat": "HTTP {{status}}"
@@ -132,7 +132,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "eg20eqyzviq68a"
+            "uid": "prometheus"
           },
           "expr": "topk(6, sum(rate(flask_http_request_total[1m])) by (endpoint))",
           "legendFormat": "Route: {{endpoint}}"
@@ -153,7 +153,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "ag20eqz9nmewwf"
+            "uid": "loki"
           },
           "expr": "{container=~\"hethongqlsv_.*\"}"
         }
