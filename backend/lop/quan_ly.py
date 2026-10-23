@@ -153,13 +153,9 @@ def delete_lop(id):
     if not item:
         return jsonify({"error": "Lop not found"}), 404
 
-    from models import Student, LichHoc, BaiTap
+    from models import Student
     if Student.query.filter((Student.class_id == id) | (Student.class_name == item.name)).first():
         return jsonify({"error": "Không thể xóa Lớp vì vẫn còn sinh viên đang theo học trong lớp này."}), 400
-    if LichHoc.query.filter_by(class_id=id).first():
-        return jsonify({"error": "Không thể xóa Lớp vì đang có lịch học được gán cho lớp này."}), 400
-    if BaiTap.query.filter_by(class_id=id).first():
-        return jsonify({"error": "Không thể xóa Lớp vì đang có bài tập được giao cho lớp này."}), 400
 
     try:
         db.session.delete(item)

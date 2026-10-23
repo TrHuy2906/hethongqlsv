@@ -253,14 +253,6 @@ def delete_student(id):
     if not student:
         return jsonify({'error': 'Student not found'}), 404
 
-    from models import DoAn, DiemDoAn
-    proj = DoAn.query.filter_by(student_id=id).first()
-    if proj:
-        grade = DiemDoAn.query.filter_by(project_id=proj.id).first()
-        if grade and grade.diem_tong_ket is not None:
-            return jsonify({'error': 'Không thể xóa sinh viên đã hoàn thành và có điểm bảo vệ đồ án tốt nghiệp'}), 400
-        return jsonify({'error': 'Không thể xóa sinh viên đang thực hiện đồ án tốt nghiệp'}), 400
-
     if student.account_id:
         student.account_id = None
 

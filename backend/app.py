@@ -16,10 +16,7 @@ from chuyennganh import chuyennganh_bp
 from nienkhoa import nienkhoa_bp
 from lop import lop_bp
 from taikhoan import taikhoan_bp
-from hoidong import hoidong_bp
-from doan import doan_bp
 from diem import diem_bp
-from thuctap import thuctap_bp
 from portal import portal_bp
 from admin_ops import admin_ops_bp
 
@@ -70,10 +67,7 @@ app.register_blueprint(chuyennganh_bp)
 app.register_blueprint(nienkhoa_bp)
 app.register_blueprint(lop_bp)
 app.register_blueprint(taikhoan_bp)
-app.register_blueprint(hoidong_bp)
-app.register_blueprint(doan_bp)
 app.register_blueprint(diem_bp)
-app.register_blueprint(thuctap_bp)
 app.register_blueprint(portal_bp)
 app.register_blueprint(admin_ops_bp)
 
@@ -156,33 +150,12 @@ def nienkhoa_index():
 def lop_index():
     return render_template('lop.html')
 
-# Giao diện Web Quản lý Đồ Án
-@app.route('/doan')
-@login_required
-@role_required(0, 1, 2)
-def doan_index():
-    return render_template('doan.html')
-
-# Giao diện Web Quản lý Hội Đồng Bảo Vệ
-@app.route('/hoidong')
-@login_required
-@role_required(0, 1, 2)
-def hoidong_index():
-    return render_template('hoidong.html')
-
 # Giao diện Web Quản lý Điểm Đồ Án
 @app.route('/diem')
 @login_required
 @role_required(0, 1, 2)
 def diem_index():
     return render_template('diem.html')
-
-# Giao diện Web Quản lý Thực Tập
-@app.route('/thuctap')
-@login_required
-@role_required(0, 1, 2)
-def thuctap_index():
-    return render_template('thuctap.html')
 
 # Giao diện Web Quản lý Tài Khoản (Admin)
 @app.route('/taikhoan')

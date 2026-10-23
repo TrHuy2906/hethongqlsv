@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, session
 from auth import login_required, role_required
 from database import db
-from models import Student, Lecturer, User, Khoa, BoMon, ChuyenNganh, Lop, NienKhoa, DoAn, ThucTap, HoiDong
+from models import Student, Lecturer, User, Khoa, BoMon, ChuyenNganh, Lop, NienKhoa, DiemMonHoc
 from sqlalchemy import text
 import os
 from datetime import datetime
@@ -28,9 +28,7 @@ def get_system_overview():
             'total_nienkhoa': NienKhoa.query.count(),
             'avg_score': round(float(avg_score_val), 1),
             'good_students': good_students_cnt,
-            'total_doan': DoAn.query.count(),
-            'total_thuctap': ThucTap.query.count(),
-            'total_hoidong': HoiDong.query.count()
+            'total_grades': DiemMonHoc.query.count()
         }
 
         db.session.execute(text('SELECT 1'))

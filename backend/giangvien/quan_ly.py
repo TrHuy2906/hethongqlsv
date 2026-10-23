@@ -159,15 +159,7 @@ def delete_lecturer(id):
         return jsonify({"error": "Lecturer not found"}), 404
 
     # Kiểm tra ràng buộc dữ liệu trước khi xóa
-    from models import LichHoc, DoAn, HoiDong, BaiTap, DiemMonHoc
-    if LichHoc.query.filter_by(lecturer_id=id).first():
-        return jsonify({"error": "Không thể xóa giảng viên đang được phân công lịch giảng dạy"}), 400
-    if DoAn.query.filter((DoAn.lecturer_id == id) | (DoAn.reviewer_id == id)).first():
-        return jsonify({"error": "Không thể xóa giảng viên đang hướng dẫn hoặc phản biện đồ án tốt nghiệp"}), 400
-    if HoiDong.query.filter((HoiDong.member1_id == id) | (HoiDong.member2_id == id) | (HoiDong.member3_id == id)).first():
-        return jsonify({"error": "Không thể xóa giảng viên đang là thành viên của hội đồng bảo vệ"}), 400
-    if BaiTap.query.filter_by(lecturer_id=id).first():
-        return jsonify({"error": "Không thể xóa giảng viên đã tạo bài tập cho sinh viên"}), 400
+    from models import DiemMonHoc
     if DiemMonHoc.query.filter_by(lecturer_id=id).first():
         return jsonify({"error": "Không thể xóa giảng viên đang phụ trách bảng điểm môn học"}), 400
 

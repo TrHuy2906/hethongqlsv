@@ -68,13 +68,11 @@ def delete_khoa(id):
     if not khoa:
         return jsonify({"error": "Khoa not found"}), 404
 
-    from models import BoMon, ChuyenNganh, HoiDong
+    from models import BoMon, ChuyenNganh
     if BoMon.query.filter_by(khoa_id=id).first():
         return jsonify({"error": "Không thể xóa Khoa vì còn có Bộ môn trực thuộc. Vui lòng chuyển hoặc xóa các bộ môn liên quan trước."}), 400
     if ChuyenNganh.query.filter_by(faculty_id=id).first():
         return jsonify({"error": "Không thể xóa Khoa vì còn có Chuyên ngành đào tạo trực thuộc."}), 400
-    if HoiDong.query.filter_by(faculty_id=id).first():
-        return jsonify({"error": "Không thể xóa Khoa vì đang có Hội đồng bảo vệ trực thuộc."}), 400
 
     try:
         db.session.delete(khoa)
