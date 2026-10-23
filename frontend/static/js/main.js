@@ -100,6 +100,39 @@ function renderUserHeader(user) {
     const roleLabels = { 0: 'Sinh viên', 1: 'Giảng viên', 2: 'Quản trị viên' };
     const roleLabel = roleLabels[user.role] || 'Người dùng';
 
+    // Đặt class vai trò lên <body> để CSS tự động ẩn/hiện chính xác
+    document.body.classList.remove('role-admin', 'role-lecturer', 'role-student');
+    if (user.role === 2) {
+        document.body.classList.add('role-admin');
+    } else if (user.role === 1) {
+        document.body.classList.add('role-lecturer');
+    } else if (user.role === 0) {
+        document.body.classList.add('role-student');
+    }
+
+    const isAdmin = user.role === 2;
+    const isLecturer = user.role === 1;
+    const isStudent = user.role === 0;
+
+    // Ẩn/hiện cưỡng bức bằng JS cho toàn bộ phần tử phân quyền
+    document.querySelectorAll('.admin-only').forEach(el => {
+        el.style.setProperty('display', isAdmin ? '' : 'none', 'important');
+    });
+    document.querySelectorAll('.lecturer-only').forEach(el => {
+        el.style.setProperty('display', isLecturer ? '' : 'none', 'important');
+    });
+    document.querySelectorAll('.student-only, .student-strict-only').forEach(el => {
+        el.style.setProperty('display', isStudent ? '' : 'none', 'important');
+    });
+    document.querySelectorAll('.admin-or-lecturer-only').forEach(el => {
+        el.style.setProperty('display', (isAdmin || isLecturer) ? '' : 'none', 'important');
+    });
+
+    const addStudentBtn = document.getElementById('openAddModalBtn');
+    if (addStudentBtn) {
+        addStudentBtn.style.setProperty('display', isAdmin ? '' : 'none', 'important');
+    }
+
     const userContainer = document.getElementById('headerUserBadge');
     if (userContainer) {
         userContainer.innerHTML = `

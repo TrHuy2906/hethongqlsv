@@ -1367,20 +1367,6 @@ function renderStudents() {
                 </td>
                 <td>
                     <span class="badge-class">${className}</span>
-                    <div style="margin-top: 6px; display: flex; gap: 4px; flex-wrap: wrap;">
-                        ${s.project_id ? `
-                            <a href="/doan?search=${encodeURIComponent(s.student_code || s.name)}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-ictu-50 text-ictu-700 border border-ictu-200 hover:bg-ictu-100 transition-colors" title="Đồ án: ${s.project_name || s.project_code}">
-                                <span class="material-symbols-outlined text-[12px]">assignment</span>
-                                <span>${s.project_code || 'Đồ án'}</span>
-                            </a>
-                        ` : ''}
-                        ${s.has_internship ? `
-                            <a href="/thuctap" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors" title="Thực tập: ${s.internship_company || 'Doanh nghiệp'}">
-                                <span class="material-symbols-outlined text-[12px]">work</span>
-                                <span>Thực tập</span>
-                            </a>
-                        ` : ''}
-                    </div>
                 </td>
                 <td>
                     <span class="badge-score ${rank.css}">
@@ -1432,7 +1418,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const openAddBtn = document.getElementById('openAddModalBtn');
     if (openAddBtn) {
+        if (!currentUser || currentUser.role !== 2) {
+            openAddBtn.style.setProperty('display', 'none', 'important');
+        }
         openAddBtn.addEventListener('click', () => {
+            if (!currentUser || currentUser.role !== 2) {
+                showToast('Chỉ Quản trị viên mới có quyền thêm sinh viên', 'error');
+                return;
+            }
             document.getElementById('modalTitle').textContent = 'Thêm Sinh Viên Mới';
             document.getElementById('studentId').value = '';
             studentForm.reset();
@@ -1782,6 +1775,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 window.editStudent = function(id) {
+    if (!currentUser || currentUser.role !== 2) {
+        showToast('Chỉ Quản trị viên mới có quyền chỉnh sửa sinh viên', 'error');
+        return;
+    }
     const s = allStudents.find(item => item.id === id);
     if (!s) return;
 
@@ -1872,6 +1869,10 @@ window.unlinkStudentAccount = async function(id) {
 };
 
 window.openDeleteModal = function(id, name) {
+    if (!currentUser || currentUser.role !== 2) {
+        showToast('Chỉ Quản trị viên mới có quyền xóa sinh viên', 'error');
+        return;
+    }
     studentToDeleteId = id;
     const nameEl = document.getElementById('deleteStudentName');
     if (nameEl) nameEl.textContent = name;
