@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.env
+venv/
+env/
+
+# Docker
+.docker/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+cookie.txt
+
+# Backups and Logs
+backups/
+logs/
+*.log
+secrets/
+scratch/

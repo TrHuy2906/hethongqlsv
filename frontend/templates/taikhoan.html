@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Quản lý tài khoản người dùng, phân quyền và đặt lại mật khẩu cho hệ thống quản lý sinh viên.">
+    <title>Quản Lý Tài Khoản &amp; Người Dùng | Hệ Thống QLSV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ictu: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#b9ddfd',
+                            300: '#7cc2fb',
+                            400: '#36a3f7',
+                            500: '#0c87eb',
+                            600: '#026bc9',
+                            700: '#0355a3',
+                            800: '#074886',
+                            900: '#0c3d6f',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex">
+    <div class="toast-container" id="toastContainer"></div>
+
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col shrink-0 h-screen sticky top-0 self-start z-20 shadow-[1px_0_12px_rgba(0,0,0,0.02)]">
+        <div class="h-20 px-6 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-ictu-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-ictu-600/30">
+                <span class="material-symbols-outlined text-2xl">school</span>
+            </div>
+            <div>
+                <span class="text-sm font-extrabold text-slate-900 block leading-tight">HỆ THỐNG QLSV</span>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Cổng Quản Trị &amp; Đào Tạo</span>
+            </div>
+        </div>
+
+        <div class="p-3.5 mx-3 my-3 rounded-2xl bg-gradient-to-br from-ictu-50/70 to-slate-50 border border-slate-200/80 flex items-center gap-3">
+            <div class="relative shrink-0">
+                <div id="adminAvatarInitials" class="w-10 h-10 rounded-full bg-gradient-to-tr from-ictu-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white">
+                    AD
+                </div>
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1">
+                    <h4 id="adminSidebarName" class="text-xs font-bold text-slate-900 truncate">Quản Trị Viên</h4>
+                    <span class="material-symbols-outlined text-[14px] text-ictu-600 fill">verified</span>
+                </div>
+                <p id="adminSidebarEmail" class="text-[11px] text-slate-500 truncate">admin@qlsv.edu.vn</p>
+                <span id="adminSidebarRole" class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-ictu-100 text-ictu-700">Quản trị viên</span>
+            </div>
+        </div>
+
+        <div class="px-3 flex-1 overflow-y-auto space-y-1 text-xs">
+            <p class="px-3 pt-2 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Hệ Thống Quản Lý</p>
+
+            <a href="/" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">group</span>
+                <span>Quản lý sinh viên</span>
+            </a>
+
+            <a href="/giangvien" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">co_present</span>
+                <span>Quản lý giảng viên</span>
+            </a>
+
+            <a href="/doan" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">assignment</span>
+                <span>Đồ án tốt nghiệp</span>
+            </a>
+
+            <a href="/thuctap" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">work</span>
+                <span>Thực tập doanh nghiệp</span>
+            </a>
+
+            <a href="/hoidong" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">groups</span>
+                <span>Hội đồng chấm thi</span>
+            </a>
+
+            <a href="/diem" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">military_tech</span>
+                <span>Điểm số &amp; Học lực</span>
+            </a>
+
+            <p class="px-3 pt-4 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Danh Mục Đào Tạo</p>
+
+            <a href="/khoa_bomon" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">apartment</span>
+                <span>Khoa &amp; Bộ môn</span>
+            </a>
+
+            <a href="/chuyennganh" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">account_tree</span>
+                <span>Chuyên ngành</span>
+            </a>
+
+            <a href="/nienkhoa" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">calendar_today</span>
+                <span>Niên khóa</span>
+            </a>
+
+            <a href="/lop" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">class</span>
+                <span>Lớp học</span>
+            </a>
+
+            <p class="px-3 pt-4 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider admin-only">Quản Trị &amp; Hạ Tầng</p>
+
+            <a href="/taikhoan" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-ictu-50 text-ictu-700 shadow-xs border border-ictu-100 admin-only">
+                <span class="material-symbols-outlined text-[19px] text-ictu-600">manage_accounts</span>
+                <span>Quản lý tài khoản</span>
+            </a>
+
+            <a href="http://localhost:3002" target="_blank" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-amber-700 hover:bg-amber-50/70 transition-colors admin-only">
+                <span class="material-symbols-outlined text-[19px] text-amber-500">monitoring</span>
+                <span>Grafana Dashboard</span>
+            </a>
+
+            <a href="http://localhost:9092" target="_blank" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-rose-700 hover:bg-rose-50/70 transition-colors admin-only">
+                <span class="material-symbols-outlined text-[19px] text-rose-500">query_stats</span>
+                <span>Prometheus Metrics</span>
+            </a>
+
+            <a href="http://localhost:8084" target="_blank" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-cyan-700 hover:bg-cyan-50/70 transition-colors admin-only">
+                <span class="material-symbols-outlined text-[19px] text-cyan-500">database</span>
+                <span>phpMyAdmin</span>
+            </a>
+        </div>
+
+        <div class="p-3.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs text-slate-500">
+            <span class="flex items-center gap-1.5 font-bold text-[11px]">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Docker Cloud
+            </span>
+            <button id="logoutBtn" class="text-slate-400 hover:text-rose-600 transition-colors p-1" title="Đăng xuất">
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 min-h-screen bg-slate-50">
+        <header class="h-16 bg-white/95 border-b border-slate-200/80 px-8 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+            <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                <span class="material-symbols-outlined text-[16px] text-ictu-600">home</span>
+                <span>Hệ thống</span>
+                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                <span class="text-slate-800 font-bold">Quản Lý Tài Khoản &amp; Người Dùng</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div id="headerUserBadge"></div>
+
+                <div id="systemHealthBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="systemHealthText">Hệ thống Trực tuyến</span>
+                </div>
+
+                <button id="openChangePwdBtn" class="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Đổi mật khẩu">
+                    <span class="material-symbols-outlined text-[16px]">key</span>
+                    <span>Đổi MK</span>
+                </button>
+
+                <button onclick="window.location.reload()" class="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">refresh</span>
+                    <span>Làm mới</span>
+                </button>
+
+                <button id="openAddUserModalBtn" class="h-9 px-4 rounded-xl bg-gradient-to-r from-ictu-600 to-indigo-600 hover:from-ictu-700 hover:to-indigo-700 text-white text-xs font-bold transition-all shadow-sm shadow-ictu-600/30 flex items-center gap-1.5 cursor-pointer active:scale-95">
+                    <span class="material-symbols-outlined text-[18px]">person_add</span>
+                    <span>Thêm Tài Khoản</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="p-8 space-y-6 flex-1">
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Thống kê tài khoản">
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Tổng Tài Khoản</span>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="kpiTotalUsers">0</div>
+                        <div class="text-[11px] text-slate-500 font-semibold mt-1">Toàn bộ người dùng</div>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-ictu-50 text-ictu-600 flex items-center justify-center font-bold text-2xl">
+                        <span class="material-symbols-outlined text-2xl">group</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Sinh Viên (Role 0)</span>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="kpiStudentUsers">0</div>
+                        <div class="text-[11px] text-slate-500 font-semibold mt-1">Tài khoản sinh viên</div>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-2xl">
+                        <span class="material-symbols-outlined text-2xl">school</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Giảng Viên (Role 1)</span>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="kpiLecturerUsers">0</div>
+                        <div class="text-[11px] text-slate-500 font-semibold mt-1">Tài khoản giảng viên</div>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-2xl">
+                        <span class="material-symbols-outlined text-2xl">co_present</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Quản Trị Viên (Role 2)</span>
+                        <div class="text-2xl font-black text-slate-900 mt-1" id="kpiAdminUsers">0</div>
+                        <div class="text-[11px] text-slate-500 font-semibold mt-1">Tài khoản quản trị</div>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-2xl">
+                        <span class="material-symbols-outlined text-2xl">shield</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-wrap gap-3 items-center justify-between">
+                <div class="relative flex-1 min-w-[260px]">
+                    <span class="material-symbols-outlined text-[18px] text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2">search</span>
+                    <input type="text" id="userSearchInput" placeholder="Tìm theo tên đăng nhập hoặc họ tên..." autocomplete="off" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600 transition-all">
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <select id="roleFilter" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                        <option value="">Tất cả vai trò</option>
+                        <option value="2">Quản trị viên (Role 2)</option>
+                        <option value="1">Giảng viên (Role 1)</option>
+                        <option value="0">Sinh viên (Role 0)</option>
+                    </select>
+                </div>
+            </section>
+
+            <section class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="userTable">
+                        <thead>
+                            <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                <th class="px-6 py-3.5 w-16">ID</th>
+                                <th class="px-6 py-3.5">Người dùng</th>
+                                <th class="px-6 py-3.5">Vai trò</th>
+                                <th class="px-6 py-3.5">Thực thể liên kết</th>
+                                <th class="px-6 py-3.5">Email</th>
+                                <th class="px-6 py-3.5">Trạng thái</th>
+                                <th class="px-6 py-3.5 text-right w-44">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="userModal">
+        <div class="modal-card">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h2 class="text-sm font-extrabold text-slate-800">Thêm Tài Khoản &amp; Đồng Bộ Hồ Sơ</h2>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="closeUserModalBtn">&times;</button>
+            </div>
+            <form id="userForm" class="p-6 space-y-4">
+                <div class="space-y-1">
+                    <label for="roleSelect" class="block text-xs font-bold text-slate-700">Vai trò tài khoản (Role) <span class="text-rose-500">*</span></label>
+                    <select id="roleSelect" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                        <option value="0">Sinh viên (Role 0)</option>
+                        <option value="1">Giảng viên (Role 1)</option>
+                        <option value="2">Quản trị viên (Role 2)</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1" id="profileSyncGroup">
+                    <label for="linkProfileSelect" class="block text-xs font-bold text-slate-700">Liên kết hồ sơ nghiệp vụ</label>
+                    <select id="linkProfileSelect" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                        <option value="">-- Đang tải danh sách hồ sơ... --</option>
+                    </select>
+                    <p class="text-[11px] text-slate-400" id="profileSyncHelpText"></p>
+                </div>
+
+                <div class="space-y-1" id="fullNameGroup">
+                    <label for="fullNameInput" class="block text-xs font-bold text-slate-700">Họ và tên người dùng <span class="text-rose-500">*</span></label>
+                    <input type="text" id="fullNameInput" placeholder="Ví dụ: Nguyễn Văn An" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="usernameInput" class="block text-xs font-bold text-slate-700">Tên đăng nhập <span class="text-rose-500">*</span></label>
+                        <input type="text" id="usernameInput" required placeholder="Ví dụ: SV001 hoặc gvan" autocomplete="username" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="passwordInput" class="block text-xs font-bold text-slate-700">Mật khẩu <span class="text-rose-500">*</span></label>
+                        <input type="password" id="passwordInput" required placeholder="Tối thiểu 6 ký tự" autocomplete="new-password" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="emailInput" class="block text-xs font-bold text-slate-700">Email (@wru.vn)</label>
+                    <input type="email" id="emailInput" placeholder="Ví dụ: an@wru.vn" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+
+                <div class="space-y-1" id="userClassGroup">
+                    <label for="userClassSelect" class="block text-xs font-bold text-slate-700">Lớp sinh hoạt (Cho sinh viên)</label>
+                    <select id="userClassSelect" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                        <option value="">-- Chọn lớp học --</option>
+                    </select>
+                </div>
+
+                <div class="space-y-1" id="userDeptGroup" style="display: none;">
+                    <label for="userDeptSelect" class="block text-xs font-bold text-slate-700">Bộ môn phụ trách (Cho giảng viên)</label>
+                    <select id="userDeptSelect" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                        <option value="">-- Chọn bộ môn --</option>
+                    </select>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="cancelUserModalBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold shadow-sm shadow-ictu-600/30 flex items-center gap-1.5" id="saveUserBtn">
+                        <span class="material-symbols-outlined text-[16px]">save</span>
+                        <span>Lưu tài khoản</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="changePwdModal">
+        <div class="modal-card max-w-md">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h2 class="text-sm font-extrabold text-slate-800">Đổi Mật Khẩu</h2>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="closeChangePwdBtn">&times;</button>
+            </div>
+            <form id="changePwdForm" class="p-6 space-y-3">
+                <div class="space-y-1">
+                    <label for="oldPasswordInput" class="block text-xs font-bold text-slate-700">Mật khẩu cũ <span class="text-rose-500">*</span></label>
+                    <input type="password" id="oldPasswordInput" required autocomplete="current-password" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+                <div class="space-y-1">
+                    <label for="newPasswordInput" class="block text-xs font-bold text-slate-700">Mật khẩu mới (6 - 29 ký tự) <span class="text-rose-500">*</span></label>
+                    <input type="password" id="newPasswordInput" required minlength="6" maxlength="29" autocomplete="new-password" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+                <div class="space-y-1">
+                    <label for="confirmPasswordInput" class="block text-xs font-bold text-slate-700">Nhập lại mật khẩu mới <span class="text-rose-500">*</span></label>
+                    <input type="password" id="confirmPasswordInput" required minlength="6" maxlength="29" autocomplete="new-password" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="cancelChangePwdBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold shadow-sm shadow-ictu-600/30 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">key</span>
+                        <span>Lưu Mật Khẩu</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editUserModal">
+        <div class="modal-card max-w-md">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h2 class="text-sm font-extrabold text-slate-800">Chỉnh Sửa Tài Khoản Người Dùng</h2>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="closeEditUserModalBtn">&times;</button>
+            </div>
+            <form id="editUserForm" class="p-6 space-y-4">
+                <input type="hidden" id="editUserId" value="">
+
+                <div class="space-y-1">
+                    <label for="editUsernameInput" class="block text-xs font-bold text-slate-700">Tên đăng nhập (Username)</label>
+                    <input type="text" id="editUsernameInput" disabled class="w-full px-3.5 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-600 cursor-not-allowed">
+                </div>
+
+                <div class="space-y-1">
+                    <label for="editFullNameInput" class="block text-xs font-bold text-slate-700">Họ và tên người dùng <span class="text-rose-500">*</span></label>
+                    <input type="text" id="editFullNameInput" required placeholder="Ví dụ: Nguyễn Văn An" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+
+                <div class="space-y-1">
+                    <label for="editEmailInput" class="block text-xs font-bold text-slate-700">Email (@wru.vn)</label>
+                    <input type="email" id="editEmailInput" placeholder="Ví dụ: an@wru.vn" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="editRoleSelect" class="block text-xs font-bold text-slate-700">Vai trò (Role) <span class="text-rose-500">*</span></label>
+                        <select id="editRoleSelect" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                            <option value="0">Sinh viên (0)</option>
+                            <option value="1">Giảng viên (1)</option>
+                            <option value="2">Quản trị viên (2)</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="editStatusSelect" class="block text-xs font-bold text-slate-700">Trạng thái <span class="text-rose-500">*</span></label>
+                        <select id="editStatusSelect" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                            <option value="HoatDong">Hoạt động</option>
+                            <option value="Khoa">Bị khóa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="cancelEditUserModalBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold shadow-sm shadow-ictu-600/30 flex items-center gap-1.5" id="saveEditUserBtn">
+                        <span class="material-symbols-outlined text-[16px]">save</span>
+                        <span>Cập nhật</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/taikhoan.js') }}"></script>
+</body>
+</html>

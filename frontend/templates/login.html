@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Nhập | Cổng Quản Lý Sinh Viên</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ictu: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#b9ddfd',
+                            300: '#7cc2fb',
+                            400: '#36a3f7',
+                            500: '#0c87eb',
+                            600: '#026bc9',
+                            700: '#0355a3',
+                            800: '#074886',
+                            900: '#0c3d6f',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: white;
+            color: #1e293b;
+            padding: 12px 18px;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 font-sans text-slate-800 min-h-screen flex items-center justify-center p-4 antialiased relative overflow-hidden">
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="w-full max-w-md relative z-10">
+        <div class="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8 sm:p-10 space-y-6">
+            <div class="text-center space-y-2">
+                <div class="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-tr from-ictu-600 to-indigo-600 items-center justify-center text-white shadow-lg shadow-ictu-600/30 ring-4 ring-ictu-50 mb-2">
+                    <span class="material-symbols-outlined text-3xl">school</span>
+                </div>
+                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">HỆ THỐNG QUẢN LÝ SINH VIÊN</h1>
+                <p class="text-xs font-semibold text-slate-500">Cổng Quản Trị &amp; Đào Tạo Trực Tuyến</p>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-ictu-50 text-ictu-700 border border-ictu-100">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Docker Cloud Infrastructure</span>
+                </div>
+            </div>
+
+            <form id="loginForm" class="space-y-4">
+                <div class="space-y-1.5">
+                    <label for="username" class="block text-xs font-bold text-slate-700">Tài khoản / Tên đăng nhập <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined text-[18px] text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2">person</span>
+                        <input type="text" id="username" required placeholder="Nhập tài khoản (vd: admin)" autocomplete="username" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600 transition-all">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="password" class="block text-xs font-bold text-slate-700">Mật khẩu <span class="text-rose-500">*</span></label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined text-[18px] text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2">lock</span>
+                        <input type="password" id="password" required placeholder="Nhập mật khẩu" autocomplete="current-password" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600 transition-all">
+                    </div>
+                </div>
+
+                <button type="submit" id="loginBtn" class="w-full py-3 px-4 bg-gradient-to-r from-ictu-600 to-indigo-600 hover:from-ictu-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-ictu-600/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]">login</span>
+                    <span>Đăng Nhập Hệ Thống</span>
+                </button>
+            </form>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                <span>Triển khai &amp; Quản trị HT</span>
+                <span class="text-ictu-600 font-bold">Phân quyền: Role 0 / 1 / 2</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span> <span>Đang xác thực...</span>';
+
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok && (data.success || data.role !== undefined || data.message === 'Login successful')) {
+                    showToast('Đăng nhập thành công! Đang chuyển hướng...', 'success');
+                    setTimeout(() => {
+                        window.location.href = data.redirect || '/';
+                    }, 500);
+                } else {
+                    showToast(data.message || 'Tài khoản hoặc mật khẩu không chính xác', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">login</span> <span>Đăng Nhập Hệ Thống</span>';
+                }
+            } catch (err) {
+                showToast('Không thể kết nối đến máy chủ', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">login</span> <span>Đăng Nhập Hệ Thống</span>';
+            }
+        });
+    </script>
+</body>
+</html>

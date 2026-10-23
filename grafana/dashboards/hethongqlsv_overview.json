@@ -1,0 +1,176 @@
+{
+  "id": null,
+  "panels": [
+    {
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "OFFLINE"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "ONLINE"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "eg20eqyzviq68a"
+          },
+          "expr": "up{job=\"flask_app\"}"
+        }
+      ],
+      "title": "Trạng thái Web App (Flask)",
+      "type": "stat"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "DOWN"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "HEALTHY"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "eg20eqyzviq68a"
+          },
+          "expr": "up{job=\"prometheus\"}"
+        }
+      ],
+      "title": "Trạng thái Prometheus Scrape",
+      "type": "stat"
+    },
+    {
+      "gridPos": {
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "eg20eqyzviq68a"
+          },
+          "expr": "sum(flask_http_request_total)"
+        }
+      ],
+      "title": "Tổng số Request đã phục vụ",
+      "type": "stat"
+    },
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "id": 4,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "eg20eqyzviq68a"
+          },
+          "expr": "sum(flask_http_request_total) by (status)",
+          "legendFormat": "HTTP {{status}}"
+        }
+      ],
+      "title": "Phân bố Request theo HTTP Status Code",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "id": 5,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "eg20eqyzviq68a"
+          },
+          "expr": "topk(6, sum(rate(flask_http_request_total[1m])) by (endpoint))",
+          "legendFormat": "Route: {{endpoint}}"
+        }
+      ],
+      "title": "Tần suất Request theo Endpoint",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "id": 6,
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "ag20eqz9nmewwf"
+          },
+          "expr": "{container=~\"hethongqlsv_.*\"}"
+        }
+      ],
+      "title": "Nhật ký Log Container Trực tiếp (Loki)",
+      "type": "logs"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 30,
+  "tags": [
+    "hethongqlsv",
+    "production",
+    "monitoring"
+  ],
+  "timezone": "browser",
+  "title": "Hệ thống Quản lý Sinh viên - Giám sát Tổng thể",
+  "uid": "as2r56",
+  "version": 1
+}

@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hệ thống Quản lý Sinh viên chuyên nghiệp, trực quan, hỗ trợ theo dõi điểm số, xếp loại và giám sát hệ thống thời gian thực.">
+    <title>Hệ Thống Quản Lý Sinh Viên | Student Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ictu: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#b9ddfd',
+                            300: '#7cc2fb',
+                            400: '#36a3f7',
+                            500: '#0c87eb',
+                            600: '#026bc9',
+                            700: '#0355a3',
+                            800: '#074886',
+                            900: '#0c3d6f',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex">
+    <div class="toast-container" id="toastContainer"></div>
+
+    <aside class="w-72 bg-white border-r border-slate-200 flex flex-col shrink-0 h-screen sticky top-0 self-start z-20 shadow-[1px_0_12px_rgba(0,0,0,0.02)]">
+        <div class="h-20 px-6 border-b border-slate-100 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-ictu-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-ictu-600/30">
+                <span class="material-symbols-outlined text-2xl">school</span>
+            </div>
+            <div>
+                <span class="text-sm font-extrabold text-slate-900 block leading-tight">HỆ THỐNG QLSV</span>
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Cổng Quản Trị &amp; Đào Tạo</span>
+            </div>
+        </div>
+
+        <div class="p-3.5 mx-3 my-3 rounded-2xl bg-gradient-to-br from-ictu-50/70 to-slate-50 border border-slate-200/80 flex items-center gap-3">
+            <div class="relative shrink-0">
+                <div id="adminAvatarInitials" class="w-10 h-10 rounded-full bg-gradient-to-tr from-ictu-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white">
+                    AD
+                </div>
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1">
+                    <h4 id="adminSidebarName" class="text-xs font-bold text-slate-900 truncate">Quản Trị Viên</h4>
+                    <span class="material-symbols-outlined text-[14px] text-ictu-600 fill">verified</span>
+                </div>
+                <p id="adminSidebarEmail" class="text-[11px] text-slate-500 truncate">admin@qlsv.edu.vn</p>
+                <span id="adminSidebarRole" class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-ictu-100 text-ictu-700">Quản trị viên</span>
+            </div>
+        </div>
+
+        <div class="px-3 flex-1 overflow-y-auto space-y-1 text-xs">
+            <p class="px-3 pt-2 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider non-student-only">Hệ Thống Quản Lý</p>
+
+            <a href="/" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-ictu-50 text-ictu-700 shadow-xs border border-ictu-100 non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-ictu-600">group</span>
+                <span>Quản lý sinh viên</span>
+            </a>
+
+            <a href="/giangvien" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">co_present</span>
+                <span>Quản lý giảng viên</span>
+            </a>
+
+            <a href="/doan" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">assignment</span>
+                <span>Đồ án tốt nghiệp</span>
+            </a>
+
+            <a href="/thuctap" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">work</span>
+                <span>Thực tập doanh nghiệp</span>
+            </a>
+
+            <a href="/hoidong" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">groups</span>
+                <span>Hội đồng chấm thi</span>
+            </a>
+
+            <a href="/diem" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">military_tech</span>
+                <span>Điểm số &amp; Học lực</span>
+            </a>
+
+            <p class="px-3 pt-4 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider non-student-only">Danh Mục Đào Tạo</p>
+
+            <a href="/khoa_bomon" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">apartment</span>
+                <span>Khoa &amp; Bộ môn</span>
+            </a>
+
+            <a href="/chuyennganh" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">account_tree</span>
+                <span>Chuyên ngành</span>
+            </a>
+
+            <a href="/nienkhoa" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">calendar_today</span>
+                <span>Niên khóa</span>
+            </a>
+
+            <a href="/lop" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors non-student-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">class</span>
+                <span>Lớp học</span>
+            </a>
+
+            <p class="px-3 pt-2 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider student-strict-only">Cổng Học Tập Sinh Viên</p>
+
+            <a href="javascript:void(0)" onclick="window.switchStudentTab('schedule')" class="student-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-ictu-50 text-ictu-700 shadow-xs border border-ictu-100 student-strict-only" id="sideNavSchedule">
+                <span class="material-symbols-outlined text-[19px] text-ictu-600">calendar_month</span>
+                <span>Lịch học &amp; TKB</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchStudentTab('grades')" class="student-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors student-strict-only" id="sideNavGrades">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">military_tech</span>
+                <span>Bảng điểm &amp; Điểm thi</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchStudentTab('attendance')" class="student-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors student-strict-only" id="sideNavAttendance">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">event_available</span>
+                <span>Chuyên cần &amp; Buổi nghỉ</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchStudentTab('assignments')" class="student-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors student-strict-only" id="sideNavAssignments">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">assignment</span>
+                <span>Bài tập &amp; Nộp bài</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchStudentTab('classmates')" class="student-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors student-strict-only" id="sideNavClassmates">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">groups</span>
+                <span>Lớp học của tôi</span>
+            </a>
+
+            <p class="px-3 pt-2 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider lecturer-strict-only">Cổng Giảng Dạy &amp; Quản Lý</p>
+
+            <a href="javascript:void(0)" onclick="window.switchLecturerTab('overview')" class="lecturer-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold bg-ictu-50 text-ictu-700 shadow-xs border border-ictu-100 lecturer-strict-only" id="sideNavLecturerOverview">
+                <span class="material-symbols-outlined text-[19px] text-ictu-600">dashboard</span>
+                <span>Tổng quan giảng viên</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchLecturerTab('schedule')" class="lecturer-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors lecturer-strict-only" id="sideNavLecturerSchedule">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">calendar_month</span>
+                <span>Lịch giảng dạy &amp; TKB</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchLecturerTab('students')" class="lecturer-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors lecturer-strict-only" id="sideNavLecturerStudents">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">groups</span>
+                <span>Lớp học &amp; Sinh viên</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchLecturerTab('grades')" class="lecturer-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors lecturer-strict-only" id="sideNavLecturerGrades">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">military_tech</span>
+                <span>Điểm số &amp; Chuyên cần</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchLecturerTab('assignments')" class="lecturer-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors lecturer-strict-only" id="sideNavLecturerAssignments">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">assignment</span>
+                <span>Bài tập &amp; Bài nộp</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchLecturerTab('theses')" class="lecturer-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors lecturer-strict-only" id="sideNavLecturerTheses">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">menu_book</span>
+                <span>Đồ án &amp; Thực tập</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchLecturerTab('docs')" class="lecturer-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors lecturer-strict-only" id="sideNavLecturerDocs">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">description</span>
+                <span>Tài liệu học tập</span>
+            </a>
+
+            <a href="javascript:void(0)" onclick="window.switchLecturerTab('profile')" class="lecturer-sidebar-nav flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors lecturer-strict-only" id="sideNavLecturerProfile">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">account_circle</span>
+                <span>Hồ sơ cá nhân &amp; MK</span>
+            </a>
+
+            <p class="px-3 pt-4 pb-1 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider admin-only">Quản Trị &amp; Hạ Tầng</p>
+
+            <a href="/taikhoan" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-ictu-700 hover:bg-slate-50 transition-colors admin-only">
+                <span class="material-symbols-outlined text-[19px] text-slate-400">manage_accounts</span>
+                <span>Quản lý tài khoản</span>
+            </a>
+
+            <a href="http://localhost:3002" target="_blank" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-amber-700 hover:bg-amber-50/70 transition-colors admin-only">
+                <span class="material-symbols-outlined text-[19px] text-amber-500">monitoring</span>
+                <span>Grafana Dashboard</span>
+            </a>
+
+            <a href="http://localhost:9092" target="_blank" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-rose-700 hover:bg-rose-50/70 transition-colors admin-only">
+                <span class="material-symbols-outlined text-[19px] text-rose-500">query_stats</span>
+                <span>Prometheus Metrics</span>
+            </a>
+
+            <a href="http://localhost:8084" target="_blank" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-cyan-700 hover:bg-cyan-50/70 transition-colors admin-only">
+                <span class="material-symbols-outlined text-[19px] text-cyan-500">database</span>
+                <span>phpMyAdmin</span>
+            </a>
+        </div>
+
+        <div class="p-3.5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs text-slate-500">
+            <span class="flex items-center gap-1.5 font-bold text-[11px]">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Docker Cloud
+            </span>
+            <button id="logoutBtn" class="text-slate-400 hover:text-rose-600 transition-colors p-1" title="Đăng xuất">
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0 min-h-screen bg-slate-50">
+        <header class="h-16 bg-white/95 border-b border-slate-200/80 px-8 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+            <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                <span class="material-symbols-outlined text-[16px] text-ictu-600">home</span>
+                <span>Hệ thống</span>
+                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                <span class="text-slate-800 font-bold">Quản Lý Sinh Viên</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div id="headerUserBadge"></div>
+
+                <div id="systemHealthBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="systemHealthText">Hệ thống Trực tuyến</span>
+                </div>
+
+                <button id="openChangePwdBtn" class="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Đổi mật khẩu">
+                    <span class="material-symbols-outlined text-[16px]">key</span>
+                    <span>Đổi MK</span>
+                </button>
+
+                <button onclick="window.location.reload()" class="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">refresh</span>
+                    <span>Làm mới</span>
+                </button>
+
+                <button id="openAddModalBtn" class="h-9 px-4 rounded-xl bg-gradient-to-r from-ictu-600 to-indigo-600 hover:from-ictu-700 hover:to-indigo-700 text-white text-xs font-bold transition-all shadow-sm shadow-ictu-600/30 flex items-center gap-1.5 cursor-pointer active:scale-95 admin-only">
+                    <span class="material-symbols-outlined text-[18px]">person_add</span>
+                    <span>Thêm Sinh Viên</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="p-8 space-y-6 flex-1">
+            <div id="studentPortalView" class="space-y-6 student-strict-only">
+                <div class="bg-gradient-to-r from-ictu-900 via-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-indigo-800/40">
+                    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute top-0 right-1/4 w-48 h-48 bg-ictu-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                        <div class="flex items-center gap-5">
+                            <div id="studentHeroAvatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center text-white text-2xl font-black shadow-lg ring-4 ring-white/10 shrink-0">
+                                SV
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h2 id="studentHeroName" class="text-xl sm:text-2xl font-extrabold tracking-tight">Sinh Viên</h2>
+                                    <span id="studentHeroCode" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-ictu-500/30 text-cyan-200 border border-cyan-400/30">SV0006</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Đang học</span>
+                                </div>
+                                <p id="studentHeroClass" class="text-xs sm:text-sm text-slate-300 font-medium">Lớp: Kỹ thuật phần mềm 1 - K61</p>
+                                <div class="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-cyan-400">person</span> Cố vấn: <strong id="studentHeroAdvisor" class="text-slate-200">ThS. Trần Quốc Huy</strong></span>
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-indigo-400">school</span> Ngành: <strong id="studentHeroMajor" class="text-slate-200">Kỹ thuật phần mềm</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-3 text-center">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">GPA Hệ 10</span>
+                                <span id="studentSummaryGpa10" class="text-xl font-black text-cyan-300">0.0</span>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-3 text-center">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">GPA Thang 4</span>
+                                <span id="studentSummaryGpa4" class="text-xl font-black text-indigo-300">0.0</span>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-3 text-center">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Tín Chỉ</span>
+                                <span id="studentSummaryCredits" class="text-xl font-black text-emerald-300">0</span>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-3 text-center">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase block">Chuyên Cần</span>
+                                <span id="studentSummaryAttendance" class="text-xl font-black text-amber-300">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-2 flex flex-wrap gap-2">
+                    <button type="button" onclick="window.switchStudentTab('schedule')" id="btnTabSchedule" class="tab-btn-student px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-ictu-600 text-white shadow-sm shadow-ictu-600/30">
+                        <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                        <span>Thời Khóa Biểu &amp; Lịch Học</span>
+                    </button>
+
+                    <button type="button" onclick="window.switchStudentTab('grades')" id="btnTabGrades" class="tab-btn-student px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">military_tech</span>
+                        <span>Bảng Điểm Môn &amp; Điểm Cuối Kỳ</span>
+                    </button>
+
+                    <button type="button" onclick="window.switchStudentTab('attendance')" id="btnTabAttendance" class="tab-btn-student px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">event_available</span>
+                        <span>Chuyên Cần &amp; Số Buổi Nghỉ</span>
+                    </button>
+
+                    <button type="button" onclick="window.switchStudentTab('assignments')" id="btnTabAssignments" class="tab-btn-student px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">assignment</span>
+                        <span>Bài Tập &amp; Nộp Bài</span>
+                    </button>
+
+                    <button type="button" onclick="window.switchStudentTab('classmates')" id="btnTabClassmates" class="tab-btn-student px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">groups</span>
+                        <span>Lớp Học Của Tôi</span>
+                    </button>
+                </div>
+
+                <div id="paneStudentSchedule" class="student-pane space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-ictu-600">calendar_month</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Lịch Học &amp; Thời Khóa Biểu Tuần Này</h3>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-ictu-50 text-ictu-700 border border-ictu-200/60">Học kỳ 1 (2025 - 2026)</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5 w-24">Thứ</th>
+                                        <th class="px-6 py-3.5">Tiết &amp; Thời gian</th>
+                                        <th class="px-6 py-3.5">Môn học / Học phần</th>
+                                        <th class="px-6 py-3.5 text-center w-20">Tín chỉ</th>
+                                        <th class="px-6 py-3.5">Phòng học</th>
+                                        <th class="px-6 py-3.5">Giảng viên phụ trách</th>
+                                        <th class="px-6 py-3.5">Hình thức</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentScheduleTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneStudentGrades" class="student-pane space-y-4 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-amber-500">military_tech</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Bảng Điểm Môn Học &amp; Điểm Thi Cuối Kỳ</h3>
+                            </div>
+                            <span class="text-xs text-slate-500 font-semibold">Quy chế: CC 10% | GK 30% | Cuối kỳ 60%</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5 w-20">Mã MH</th>
+                                        <th class="px-6 py-3.5">Tên môn học</th>
+                                        <th class="px-4 py-3.5 text-center w-16">TC</th>
+                                        <th class="px-4 py-3.5 text-center">Chuyên cần</th>
+                                        <th class="px-4 py-3.5 text-center">Giữa kỳ</th>
+                                        <th class="px-4 py-3.5 text-center bg-amber-50/60 text-amber-900 font-bold">Điểm thi cuối kỳ</th>
+                                        <th class="px-4 py-3.5 text-center">Tổng kết (10)</th>
+                                        <th class="px-4 py-3.5 text-center">Thang 4</th>
+                                        <th class="px-4 py-3.5 text-center">Điểm chữ</th>
+                                        <th class="px-6 py-3.5 text-center">Kết quả</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentGradesTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneStudentAttendance" class="student-pane space-y-4 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-emerald-600">event_available</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Theo Dõi Chuyên Cần &amp; Số Buổi Nghỉ Học</h3>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200/60">Quy định: Vắng &ge; 20% sẽ bị cấm thi</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5">Môn học</th>
+                                        <th class="px-6 py-3.5 text-center">Tổng số buổi</th>
+                                        <th class="px-6 py-3.5 text-center bg-rose-50/50 text-rose-800 font-bold">Số buổi nghỉ</th>
+                                        <th class="px-6 py-3.5 text-center">Số buổi có mặt</th>
+                                        <th class="px-6 py-3.5 text-center">Tỷ lệ chuyên cần</th>
+                                        <th class="px-6 py-3.5 text-center">Đánh giá điều kiện thi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentAttendanceTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneStudentAssignments" class="student-pane space-y-4 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-indigo-600">assignment</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Danh Sách Bài Tập Môn Học &amp; Nộp Bài Trực Tuyến</h3>
+                            </div>
+                            <span class="text-xs text-slate-400 font-semibold">Nộp bài đúng hạn để đảm bảo điểm quá trình</span>
+                        </div>
+                        <div class="p-6">
+                            <div id="studentAssignmentsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneStudentClassmates" class="student-pane space-y-4 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-cyan-600">groups</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Thông Tin Lớp Sinh Hoạt &amp; Danh Sách Thành Viên</h3>
+                            </div>
+                            <span id="studentClassBadge" class="px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/60">Lớp sinh hoạt</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5 w-24">Mã SV</th>
+                                        <th class="px-6 py-3.5">Họ và tên</th>
+                                        <th class="px-6 py-3.5">Giới tính</th>
+                                        <th class="px-6 py-3.5">Điểm rèn luyện / Học lực</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentClassmatesTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="lecturerPortalView" class="space-y-6 lecturer-strict-only" style="display: none;">
+                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-ictu-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-indigo-800/40">
+                    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute top-0 right-1/4 w-48 h-48 bg-ictu-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                        <div class="flex items-center gap-5">
+                            <div id="lecturerHeroAvatar" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-400 to-indigo-500 flex items-center justify-center text-white text-2xl font-black shadow-lg ring-4 ring-white/10 shrink-0">
+                                GV
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h2 id="lecturerHeroName" class="text-xl sm:text-2xl font-extrabold tracking-tight">TS. Trần Văn Thầy</h2>
+                                    <span id="lecturerHeroCode" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-ictu-500/30 text-cyan-200 border border-cyan-400/30">GV0064</span>
+                                    <span id="lecturerHeroDegree" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Tiến sĩ / Giảng viên chính</span>
+                                </div>
+                                <p id="lecturerHeroFaculty" class="text-xs sm:text-sm text-slate-300 font-medium">Khoa Công nghệ thông tin • Bộ môn Kỹ thuật phần mềm</p>
+                                <div class="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-cyan-400">school</span> Chuyên môn: <strong id="lecturerHeroSpecialization" class="text-slate-200">Kỹ thuật phần mềm &amp; Hệ thống phân tán</strong></span>
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-indigo-400">mail</span> Email: <strong id="lecturerHeroEmail" class="text-slate-200">gv1@qlsv.edu.vn</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 text-center min-w-[100px]">
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">Lớp học phần</span>
+                                <span id="lecturerHeroClasses" class="text-2xl font-black text-cyan-300 mt-0.5 block">0</span>
+                                <span class="text-[9px] text-slate-400 font-medium">Được phân công</span>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 text-center min-w-[100px]">
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">Sinh viên</span>
+                                <span id="lecturerHeroStudents" class="text-2xl font-black text-white mt-0.5 block">0</span>
+                                <span class="text-[9px] text-slate-400 font-medium">Phụ trách đào tạo</span>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 text-center min-w-[100px]">
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">Bài chờ chấm</span>
+                                <span id="lecturerHeroPendingSubs" class="text-2xl font-black text-amber-300 mt-0.5 block">0</span>
+                                <span class="text-[9px] text-slate-400 font-medium">Cần đánh giá</span>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 text-center min-w-[100px]">
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider block">Đồ án / HĐ</span>
+                                <span id="lecturerHeroTheses" class="text-2xl font-black text-emerald-300 mt-0.5 block">0</span>
+                                <span class="text-[9px] text-slate-400 font-medium">Hướng dẫn &amp; PB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-2 flex flex-wrap gap-2">
+                    <button type="button" onclick="window.switchLecturerTab('overview')" id="btnLecturerTabOverview" class="tab-btn-lecturer px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-ictu-600 text-white shadow-sm shadow-ictu-600/30">
+                        <span class="material-symbols-outlined text-[18px]">dashboard</span>
+                        <span>Tổng quan</span>
+                    </button>
+                    <button type="button" onclick="window.switchLecturerTab('schedule')" id="btnLecturerTabSchedule" class="tab-btn-lecturer px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                        <span>Lịch giảng dạy &amp; TKB</span>
+                    </button>
+                    <button type="button" onclick="window.switchLecturerTab('students')" id="btnLecturerTabStudents" class="tab-btn-lecturer px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">groups</span>
+                        <span>Lớp học &amp; Sinh viên</span>
+                    </button>
+                    <button type="button" onclick="window.switchLecturerTab('grades')" id="btnLecturerTabGrades" class="tab-btn-lecturer px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">military_tech</span>
+                        <span>Điểm số &amp; Chuyên cần</span>
+                    </button>
+                    <button type="button" onclick="window.switchLecturerTab('assignments')" id="btnLecturerTabAssignments" class="tab-btn-lecturer px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">assignment</span>
+                        <span>Bài tập &amp; Bài nộp</span>
+                    </button>
+                    <button type="button" onclick="window.switchLecturerTab('theses')" id="btnLecturerTabTheses" class="tab-btn-lecturer px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">menu_book</span>
+                        <span>Đồ án &amp; Thực tập</span>
+                    </button>
+                    <button type="button" onclick="window.switchLecturerTab('docs')" id="btnLecturerTabDocs" class="tab-btn-lecturer px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">description</span>
+                        <span>Tài liệu học tập</span>
+                    </button>
+                    <button type="button" onclick="window.switchLecturerTab('profile')" id="btnLecturerTabProfile" class="tab-btn-lecturer px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-600 hover:text-ictu-600 hover:bg-slate-50">
+                        <span class="material-symbols-outlined text-[18px]">account_circle</span>
+                        <span>Hồ sơ &amp; Tài khoản</span>
+                    </button>
+                </div>
+
+                <div id="paneLecturerOverview" class="lecturer-pane space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-6">
+                            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[20px] text-ictu-600">notifications_active</span>
+                                        <h3 class="text-sm font-extrabold text-slate-900">Thông Báo &amp; Nhiệm Vụ Giảng Dạy</h3>
+                                    </div>
+                                    <span class="text-xs text-slate-400 font-semibold">Cập nhật thời gian thực</span>
+                                </div>
+                                <div id="lecturerAnnouncementsList" class="p-6 space-y-3">
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[20px] text-cyan-600">event_upcoming</span>
+                                        <h3 class="text-sm font-extrabold text-slate-900">Lịch Giảng Dạy Gần Nhất</h3>
+                                    </div>
+                                    <button type="button" onclick="window.switchLecturerTab('schedule')" class="text-xs font-bold text-ictu-600 hover:text-ictu-700 flex items-center gap-1">
+                                        <span>Xem toàn bộ lịch</span>
+                                        <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                    </button>
+                                </div>
+                                <div id="lecturerUpcomingScheduleList" class="p-6 space-y-3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[20px] text-indigo-600">pie_chart</span>
+                                    <h3 class="text-sm font-extrabold text-slate-900">Tình Hình Đào Tạo Học Kỳ</h3>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600">Học kỳ giảng dạy</span>
+                                        <span class="text-xs font-extrabold text-slate-900">HK1 (2025-2026)</span>
+                                    </div>
+                                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600">Tiến độ tuần học</span>
+                                        <span class="text-xs font-extrabold text-ictu-600">Tuần 8 / 16</span>
+                                    </div>
+                                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600">Tình trạng cổng điểm</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Đang mở nhập điểm</span>
+                                    </div>
+                                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600">Bài tập đang giao</span>
+                                        <span id="overviewAssignmentsCount" class="text-xs font-extrabold text-indigo-600">0 bài tập</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-br from-indigo-50 to-cyan-50/50 rounded-2xl border border-indigo-100 p-6 space-y-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[20px] text-indigo-600">help_outline</span>
+                                    <h4 class="text-xs font-extrabold text-slate-900">Hỗ Trợ Giảng Dạy &amp; Nghiên Cứu</h4>
+                                </div>
+                                <p class="text-[11px] text-slate-600 leading-relaxed">
+                                    Giảng viên cần điều chỉnh lịch dạy, bổ sung học phần hoặc mượn phòng máy thực hành vui lòng liên hệ Ban Đào tạo qua email <strong>daotao@qlsv.edu.vn</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneLecturerSchedule" class="lecturer-pane space-y-4 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-ictu-600">calendar_month</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Lịch Giảng Dạy &amp; Thời Khóa Biểu Học Kỳ</h3>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <select id="lecturerScheduleDayFilter" onchange="window.filterLecturerSchedule()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-ictu-500/20">
+                                    <option value="ALL">Tất cả các thứ</option>
+                                    <option value="Thứ 2">Thứ 2</option>
+                                    <option value="Thứ 3">Thứ 3</option>
+                                    <option value="Thứ 4">Thứ 4</option>
+                                    <option value="Thứ 5">Thứ 5</option>
+                                    <option value="Thứ 6">Thứ 6</option>
+                                    <option value="Thứ 7">Thứ 7</option>
+                                </select>
+                                <select id="lecturerScheduleSubjectFilter" onchange="window.filterLecturerSchedule()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-ictu-500/20">
+                                    <option value="ALL">Tất cả học phần</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5 w-24">Thứ</th>
+                                        <th class="px-6 py-3.5">Tiết &amp; Thời gian</th>
+                                        <th class="px-6 py-3.5">Lớp giảng dạy</th>
+                                        <th class="px-6 py-3.5">Học phần / Môn học</th>
+                                        <th class="px-6 py-3.5 text-center w-20">Tín chỉ</th>
+                                        <th class="px-6 py-3.5">Phòng học</th>
+                                        <th class="px-6 py-3.5">Hình thức học</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lecturerScheduleTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneLecturerStudents" class="lecturer-pane space-y-6 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-cyan-600">class</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Danh Sách Lớp Học Phần Phụ Trách</h3>
+                            </div>
+                            <span id="lecturerClassesCountBadge" class="px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/60">0 lớp</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5 w-28">Mã lớp</th>
+                                        <th class="px-6 py-3.5">Tên lớp học</th>
+                                        <th class="px-6 py-3.5 text-center">Số lượng sinh viên</th>
+                                        <th class="px-6 py-3.5 text-right">Phạm vi quyền</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lecturerAssignedClassesTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-ictu-600">groups</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Danh Sách Sinh Viên Thuộc Các Lớp Phụ Trách</h3>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="relative min-w-[220px]">
+                                    <span class="material-symbols-outlined text-[16px] text-slate-400 absolute left-3 top-1/2 -translate-y-1/2">search</span>
+                                    <input type="text" id="lecturerStudentSearchInput" oninput="window.renderLecturerStudentsTable()" placeholder="Tìm theo tên hoặc mã SV..." class="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-ictu-500/20">
+                                </div>
+                                <select id="lecturerStudentClassFilter" onchange="window.renderLecturerStudentsTable()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-ictu-500/20">
+                                    <option value="ALL">Tất cả lớp học</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5 w-24">Mã SV</th>
+                                        <th class="px-6 py-3.5">Họ và tên</th>
+                                        <th class="px-6 py-3.5">Giới tính</th>
+                                        <th class="px-6 py-3.5">Ngày sinh</th>
+                                        <th class="px-6 py-3.5">Lớp học</th>
+                                        <th class="px-6 py-3.5 text-center">GPA Tích lũy</th>
+                                        <th class="px-6 py-3.5 text-center">Xếp loại</th>
+                                        <th class="px-6 py-3.5 text-right w-28">Hồ sơ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lecturerAssignedStudentsTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneLecturerGrades" class="lecturer-pane space-y-4 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-amber-500">military_tech</span>
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-slate-900">Quản Lý Điểm Số &amp; Chuyên Cần Sinh Viên</h3>
+                                    <p class="text-[11px] text-slate-500 font-medium">Giảng viên chỉ có quyền nhập và cập nhật điểm cho các học phần được nhà trường phân công</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <select id="lecturerGradeSubjectFilter" onchange="window.renderLecturerGradesTable()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-ictu-500/20">
+                                    <option value="ALL">Tất cả môn học</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-4 py-3.5 w-24">Mã SV</th>
+                                        <th class="px-4 py-3.5">Họ và tên</th>
+                                        <th class="px-4 py-3.5">Lớp</th>
+                                        <th class="px-4 py-3.5">Môn học</th>
+                                        <th class="px-3 py-3.5 text-center">CC (10%)</th>
+                                        <th class="px-3 py-3.5 text-center">GK (30%)</th>
+                                        <th class="px-3 py-3.5 text-center bg-amber-50/60 text-amber-800">CK (60%)</th>
+                                        <th class="px-3 py-3.5 text-center">Tổng kết</th>
+                                        <th class="px-3 py-3.5 text-center">Chữ / GPA4</th>
+                                        <th class="px-3 py-3.5 text-center">Số buổi nghỉ</th>
+                                        <th class="px-4 py-3.5 text-center">Đánh giá</th>
+                                        <th class="px-4 py-3.5 text-right w-24">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lecturerGradesTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneLecturerAssignments" class="lecturer-pane space-y-6 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-indigo-600">assignment</span>
+                                <h3 class="text-sm font-extrabold text-slate-900">Danh Sách Bài Tập Môn Học Đã Giao</h3>
+                            </div>
+                            <button type="button" onclick="document.getElementById('openCreateAssignmentBtn').click()" class="px-3 py-1.5 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">add</span>
+                                <span>Giao Bài Tập Mới</span>
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5">Tên bài tập</th>
+                                        <th class="px-6 py-3.5">Môn học</th>
+                                        <th class="px-6 py-3.5">Lớp phụ trách</th>
+                                        <th class="px-6 py-3.5">Hạn nộp</th>
+                                        <th class="px-6 py-3.5 text-center">Số bài đã nộp</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lecturerAssignmentsTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-emerald-600">move_to_inbox</span>
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-slate-900">Danh Sách Bài Nộp Sinh Viên Gửi Đến Giảng Viên</h3>
+                                    <p class="text-[11px] text-slate-500 font-medium">Hệ thống chuyển trực tiếp bài nộp của sinh viên vào tài khoản giảng viên để chấm điểm</p>
+                                </div>
+                            </div>
+                            <span id="lecturerSubmissionsCountBadge" class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">0 bài nộp</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-6 py-3.5">Sinh viên nộp</th>
+                                        <th class="px-6 py-3.5">Lớp</th>
+                                        <th class="px-6 py-3.5">Môn học &amp; Bài tập</th>
+                                        <th class="px-6 py-3.5">Thời gian nộp</th>
+                                        <th class="px-6 py-3.5">Bài làm / Tệp</th>
+                                        <th class="px-6 py-3.5 text-center">Điểm &amp; Nhận xét</th>
+                                        <th class="px-6 py-3.5 text-right">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lecturerSubmissionsTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneLecturerTheses" class="lecturer-pane space-y-6 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-indigo-600">menu_book</span>
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-slate-900">Hướng Dẫn Đồ Án Tốt Nghiệp</h3>
+                                    <p class="text-[11px] text-slate-500 font-medium">Duyệt đăng ký, theo dõi tiến độ báo cáo và đánh giá đề tài sinh viên</p>
+                                </div>
+                            </div>
+                            <span id="lecturerThesesCountBadge" class="px-3 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60">0 đề tài</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-4 py-3.5 w-24">Mã ĐA</th>
+                                        <th class="px-6 py-3.5">Tên đề tài</th>
+                                        <th class="px-4 py-3.5">Sinh viên</th>
+                                        <th class="px-4 py-3.5">Lớp</th>
+                                        <th class="px-4 py-3.5 text-center">Trạng thái duyệt</th>
+                                        <th class="px-4 py-3.5 text-center">Tiến độ</th>
+                                        <th class="px-6 py-3.5 text-right w-48">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lecturerThesesTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[20px] text-amber-500">work</span>
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-slate-900">Theo Dõi Thực Tập Doanh Nghiệp Sinh Viên</h3>
+                                    <p class="text-[11px] text-slate-500 font-medium">Thông tin địa điểm thực tập và kết quả đánh giá từ doanh nghiệp</p>
+                                </div>
+                            </div>
+                            <span id="lecturerInternshipsCountBadge" class="px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60">0 sinh viên</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-4 py-3.5 w-24">Mã TT</th>
+                                        <th class="px-6 py-3.5">Sinh viên</th>
+                                        <th class="px-4 py-3.5">Lớp</th>
+                                        <th class="px-6 py-3.5">Doanh nghiệp tiếp nhận</th>
+                                        <th class="px-4 py-3.5">Vị trí</th>
+                                        <th class="px-4 py-3.5 text-center">Thời gian</th>
+                                        <th class="px-4 py-3.5 text-center">Đánh giá</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lecturerInternshipsTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneLecturerDocs" class="lecturer-pane space-y-6 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[22px] text-ictu-600">cloud_done</span>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900">Cổng Quản Lý Tài Liệu &amp; Học Liệu Số (LMS Elearning)</h3>
+                                <p class="text-xs text-slate-500 font-medium">Đồng bộ tự động tài liệu giảng dạy, bài giảng số và đề cương môn học</p>
+                            </div>
+                        </div>
+                        <div class="p-4 rounded-xl bg-ictu-50/60 border border-ictu-200/60 flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[20px] text-ictu-600 shrink-0 mt-0.5">info</span>
+                            <div class="text-xs text-ictu-900 space-y-1">
+                                <p class="font-bold">Chính sách quản lý học liệu số của Nhà trường:</p>
+                                <p class="text-slate-600">Mỗi học phần giảng dạy đã được cấu hình kho lưu trữ bài giảng số. Giảng viên có thể tải lên đề cương chi tiết học phần, bộ slide trình chiếu PDF/PPTX và bài tập thực hành. Học liệu được đồng bộ trực tiếp tới tài khoản của sinh viên đăng ký môn học.</p>
+                            </div>
+                        </div>
+
+                        <div id="lecturerDocsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="paneLecturerProfile" class="lecturer-pane space-y-6 hidden">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-8">
+                        <div class="max-w-2xl mx-auto space-y-6">
+                            <div class="flex items-center gap-5 pb-6 border-b border-slate-100">
+                                <div id="lecturerProfileAvatar" class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-ictu-600 to-indigo-600 flex items-center justify-center text-white text-3xl font-black shadow-lg">
+                                    GV
+                                </div>
+                                <div class="space-y-1">
+                                    <h3 id="lecturerProfileName" class="text-xl font-extrabold text-slate-900">TS. Trần Văn Thầy</h3>
+                                    <div class="flex items-center gap-2">
+                                        <span id="lecturerProfileCode" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-ictu-50 text-ictu-700 border border-ictu-200">GV0064</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Đang công tác</span>
+                                    </div>
+                                    <p id="lecturerProfileFaculty" class="text-xs text-slate-500 font-medium">Khoa Công nghệ thông tin • Bộ môn Kỹ thuật phần mềm</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+                                    <span class="text-slate-400 font-bold block uppercase text-[10px]">Học vị &amp; Chức danh</span>
+                                    <strong id="lecturerProfileDegree" class="text-slate-800 text-sm font-extrabold">Tiến sĩ</strong>
+                                </div>
+                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+                                    <span class="text-slate-400 font-bold block uppercase text-[10px]">Tài khoản hệ thống</span>
+                                    <strong id="lecturerProfileUsername" class="text-slate-800 text-sm font-extrabold">gv1</strong>
+                                </div>
+                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+                                    <span class="text-slate-400 font-bold block uppercase text-[10px]">Email liên hệ</span>
+                                    <strong id="lecturerProfileEmail" class="text-slate-800 text-sm font-extrabold">gv1@qlsv.edu.vn</strong>
+                                </div>
+                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-1">
+                                    <span class="text-slate-400 font-bold block uppercase text-[10px]">Hướng nghiên cứu chính</span>
+                                    <strong id="lecturerProfileResearch" class="text-slate-800 text-sm font-extrabold">Kỹ thuật phần mềm &amp; Hệ thống phân tán</strong>
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                                <button type="button" onclick="document.getElementById('openChangePwdBtn').click()" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold transition-all shadow-sm shadow-ictu-600/30 flex items-center gap-1.5 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">key</span>
+                                    <span>Đổi Mật Khẩu Đăng Nhập</span>
+                                </button>
+                                <button type="button" onclick="handleLogout()" class="px-4 py-2 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">logout</span>
+                                    <span>Đăng Xuất Tài Khoản</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminStudentManagementView" class="space-y-6 admin-only" style="display: none;">
+                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-ictu-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-indigo-800/40">
+                    <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute top-0 right-1/4 w-48 h-48 bg-ictu-400/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                        <div class="flex items-center gap-5">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-ictu-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-black shadow-lg ring-4 ring-white/10 shrink-0">
+                                <span class="material-symbols-outlined text-4xl">admin_panel_settings</span>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h2 class="text-xl sm:text-2xl font-extrabold tracking-tight">Trung Tâm Quản Trị Hệ Thống</h2>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-ictu-500/30 text-cyan-200 border border-cyan-400/30">Role = 2 (Admin)</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30" id="adminDbStatusBadge">CSDL Trực Tuyến</span>
+                                </div>
+                                <p class="text-xs sm:text-sm text-slate-300 font-medium">Toàn quyền quản trị tài khoản, nhân sự đào tạo, danh mục học vụ và an toàn dữ liệu</p>
+                                <div class="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-cyan-400">dns</span> Máy chủ: <strong class="text-slate-200">Docker Nginx + Gunicorn</strong></span>
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-indigo-400">database</span> Cơ sở dữ liệu: <strong class="text-slate-200">MySQL 8.0 (student_db)</strong></span>
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] text-emerald-400">shield</span> Bản sao lưu gần nhất: <strong id="adminLastBackupLabel" class="text-slate-200">Đang kiểm tra...</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <button type="button" id="btnAdminTriggerBackup" onclick="window.triggerAdminBackup()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold transition-all shadow-md shadow-emerald-600/30 flex items-center gap-2 cursor-pointer active:scale-95">
+                                <span class="material-symbols-outlined text-[18px]">backup</span>
+                                <span>Sao Lưu CSDL Ngay</span>
+                            </button>
+                            <a href="/taikhoan" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/10 flex items-center gap-2 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
+                                <span>Quản Lý Người Dùng</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" aria-label="Chỉ số hệ thống">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Sinh viên</span>
+                            <span class="material-symbols-outlined text-ictu-600 text-xl">school</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-black text-slate-900" id="adminKpiStudents">0</div>
+                            <div class="text-[10px] text-slate-500 font-medium mt-0.5">Hồ sơ đào tạo</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Giảng viên</span>
+                            <span class="material-symbols-outlined text-indigo-600 text-xl">co_present</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-black text-slate-900" id="adminKpiLecturers">0</div>
+                            <div class="text-[10px] text-slate-500 font-medium mt-0.5">Cán bộ giảng dạy</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tài khoản</span>
+                            <span class="material-symbols-outlined text-emerald-600 text-xl">group</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-black text-slate-900" id="adminKpiUsers">0</div>
+                            <div class="text-[10px] text-emerald-600 font-bold mt-0.5 flex items-center gap-1">
+                                <span id="adminKpiUsersActive">0</span> hoạt động
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Khoa &amp; Bộ môn</span>
+                            <span class="material-symbols-outlined text-amber-500 text-xl">apartment</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-black text-slate-900"><span id="adminKpiKhoa">0</span> / <span id="adminKpiBoMon">0</span></div>
+                            <div class="text-[10px] text-slate-500 font-medium mt-0.5">Đơn vị quản lý</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Lớp &amp; Ngành</span>
+                            <span class="material-symbols-outlined text-cyan-600 text-xl">class</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-black text-slate-900"><span id="adminKpiLop">0</span> / <span id="adminKpiChuyenNganh">0</span></div>
+                            <div class="text-[10px] text-slate-500 font-medium mt-0.5">Lớp đang học</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Đồ án &amp; TT</span>
+                            <span class="material-symbols-outlined text-purple-600 text-xl">assignment</span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="text-2xl font-black text-slate-900"><span id="adminKpiTheses">0</span> / <span id="adminKpiInternships">0</span></div>
+                            <div class="text-[10px] text-slate-500 font-medium mt-0.5"><span id="adminKpiCouncils">0</span> Hội đồng chấm</div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-[20px] text-emerald-600">save</span>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-900">Quản Lý Sao Lưu &amp; Giám Sát Vận Hành</h3>
+                                <p class="text-[11px] text-slate-500 font-medium">Bảo vệ toàn vẹn dữ liệu hệ thống thông qua các bản sao lưu cơ sở dữ liệu MySQL định kỳ</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="window.loadAdminBackups()" class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-700 transition-all flex items-center gap-1 cursor-pointer">
+                                <span class="material-symbols-outlined text-[15px]">refresh</span>
+                                <span>Làm mới</span>
+                            </button>
+                            <button type="button" onclick="window.triggerAdminBackup()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer">
+                                <span class="material-symbols-outlined text-[15px]">add_circle</span>
+                                <span>Tạo bản sao lưu mới</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-5">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <a href="http://localhost:3002" target="_blank" class="p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/30 hover:bg-amber-50/60 transition-all flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                                        <span class="material-symbols-outlined text-xl">monitoring</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-900 group-hover:text-amber-700 transition-colors">Grafana Dashboard</div>
+                                        <div class="text-[11px] text-slate-500 font-mono">:3002 (Live Telemetry)</div>
+                                    </div>
+                                </div>
+                                <span class="material-symbols-outlined text-slate-400 group-hover:text-amber-600 transition-colors">open_in_new</span>
+                            </a>
+
+                            <a href="http://localhost:9092" target="_blank" class="p-3.5 rounded-xl border border-rose-200/80 bg-rose-50/30 hover:bg-rose-50/60 transition-all flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
+                                        <span class="material-symbols-outlined text-xl">query_stats</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-900 group-hover:text-rose-700 transition-colors">Prometheus Server</div>
+                                        <div class="text-[11px] text-slate-500 font-mono">:9092 (Metrics Scraper)</div>
+                                    </div>
+                                </div>
+                                <span class="material-symbols-outlined text-slate-400 group-hover:text-rose-600 transition-colors">open_in_new</span>
+                            </a>
+
+                            <a href="http://localhost:8084" target="_blank" class="p-3.5 rounded-xl border border-cyan-200/80 bg-cyan-50/30 hover:bg-cyan-50/60 transition-all flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold">
+                                        <span class="material-symbols-outlined text-xl">database</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-slate-900 group-hover:text-cyan-700 transition-colors">phpMyAdmin Portal</div>
+                                        <div class="text-[11px] text-slate-500 font-mono">:8084 (DB Explorer)</div>
+                                    </div>
+                                </div>
+                                <span class="material-symbols-outlined text-slate-400 group-hover:text-cyan-600 transition-colors">open_in_new</span>
+                            </a>
+                        </div>
+
+                        <div class="overflow-x-auto border border-slate-200/80 rounded-xl">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-4 py-3">Tên tập tin sao lưu (.sql)</th>
+                                        <th class="px-4 py-3">Dung lượng</th>
+                                        <th class="px-4 py-3">Thời gian tạo</th>
+                                        <th class="px-4 py-3 text-right">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminBackupsTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-6 text-center text-slate-400">Đang tải danh sách bản sao lưu...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Thống kê sinh viên">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Tổng số sinh viên</span>
+                            <div class="text-2xl font-black text-slate-900 mt-1" id="statTotalStudents">0</div>
+                            <div class="text-[11px] text-slate-500 font-semibold mt-1 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px] text-emerald-500">check_circle</span>
+                                <span>Dữ liệu MySQL đồng bộ</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-ictu-50 text-ictu-600 flex items-center justify-center font-bold text-2xl">
+                            <span class="material-symbols-outlined text-2xl">group</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Điểm trung bình (GPA)</span>
+                            <div class="text-2xl font-black text-slate-900 mt-1" id="statAvgScore">0.0</div>
+                            <div class="text-[11px] text-slate-500 font-semibold mt-1 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px] text-indigo-500">analytics</span>
+                                <span>Thang điểm 10.0</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-2xl">
+                            <span class="material-symbols-outlined text-2xl">insights</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Giỏi &amp; Xuất sắc</span>
+                            <div class="text-2xl font-black text-slate-900 mt-1" id="statTopStudents">0</div>
+                            <div class="text-[11px] text-slate-500 font-semibold mt-1 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px] text-amber-500">star</span>
+                                <span>Điểm từ 8.0 trở lên</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-2xl">
+                            <span class="material-symbols-outlined text-2xl">military_tech</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Tổng số lớp học</span>
+                            <div class="text-2xl font-black text-slate-900 mt-1" id="statTotalClasses">0</div>
+                            <div class="text-[11px] text-slate-500 font-semibold mt-1 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px] text-emerald-500">category</span>
+                                <span>Lớp đang đào tạo</span>
+                            </div>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-2xl">
+                            <span class="material-symbols-outlined text-2xl">view_cozy</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-wrap gap-3 items-center justify-between">
+                    <div class="relative flex-1 min-w-[260px]">
+                        <span class="material-symbols-outlined text-[18px] text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2">search</span>
+                        <input type="text" id="searchInput" placeholder="Tìm theo tên, mã sinh viên, hoặc lớp học..." autocomplete="off" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600 transition-all">
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <select id="classFilter" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                            <option value="ALL">Tất cả các lớp</option>
+                        </select>
+
+                        <select id="rankFilter" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                            <option value="ALL">Tất cả học lực</option>
+                            <option value="EXCELLENT">Xuất sắc (9.0 - 10.0)</option>
+                            <option value="GOOD">Giỏi (8.0 - 8.9)</option>
+                            <option value="FAIR">Khá (6.5 - 7.9)</option>
+                            <option value="AVERAGE">Trung bình (5.0 - 6.4)</option>
+                            <option value="POOR">Yếu (&lt; 5.0)</option>
+                        </select>
+
+                        <select id="sortBy" class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                            <option value="ID_DESC">Mới nhất trước</option>
+                            <option value="NAME_ASC">Tên: A &rarr; Z</option>
+                            <option value="SCORE_DESC">Điểm: Cao &rarr; Thấp</option>
+                            <option value="SCORE_ASC">Điểm: Thấp &rarr; Cao</option>
+                        </select>
+                    </div>
+                </section>
+
+                <section class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse" id="studentTable">
+                            <thead>
+                                <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="px-6 py-3.5 w-24">Mã SV</th>
+                                    <th class="px-6 py-3.5">Thông tin sinh viên</th>
+                                    <th class="px-6 py-3.5">Liên hệ &amp; Tài khoản</th>
+                                    <th class="px-6 py-3.5">Lớp sinh hoạt</th>
+                                    <th class="px-6 py-3.5">Điểm số</th>
+                                    <th class="px-6 py-3.5">Xếp loại</th>
+                                    <th class="px-6 py-3.5 text-right w-28 admin-only">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody" class="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-12 text-center space-y-2" id="emptyState" style="display: none;">
+                        <span class="material-symbols-outlined text-5xl text-slate-300">folder_open</span>
+                        <h3 class="text-sm font-bold text-slate-700">Không tìm thấy sinh viên nào</h3>
+                        <p class="text-xs text-slate-400">Hãy thử tìm kiếm với từ khóa khác hoặc nhấn "Thêm Sinh Viên" mới.</p>
+                    </div>
+                </section>
+            </div>
+
+            <footer class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span><strong>Hạ tầng Giám sát:</strong> Docker Compose (Flask + MySQL + Nginx + Prometheus + Grafana + Loki)</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="http://localhost:3002" target="_blank" class="flex items-center gap-1 font-bold text-amber-600 hover:text-amber-700" id="grafanaLink">
+                        <span class="material-symbols-outlined text-[16px]">monitoring</span>
+                        <span>Grafana</span>
+                    </a>
+                    <a href="http://localhost:9092" target="_blank" class="flex items-center gap-1 font-bold text-rose-600 hover:text-rose-700" id="prometheusLink">
+                        <span class="material-symbols-outlined text-[16px]">query_stats</span>
+                        <span>Prometheus</span>
+                    </a>
+                    <a href="http://localhost:8084" target="_blank" class="flex items-center gap-1 font-bold text-cyan-600 hover:text-cyan-700" id="phpmyadminLink">
+                        <span class="material-symbols-outlined text-[16px]">database</span>
+                        <span>phpMyAdmin</span>
+                    </a>
+                    <a href="/metrics" target="_blank" class="flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-700" id="metricsLink">
+                        <span class="material-symbols-outlined text-[16px]">speed</span>
+                        <span>Metrics</span>
+                    </a>
+                    <a href="/health" target="_blank" class="flex items-center gap-1 font-bold text-emerald-600 hover:text-emerald-700" id="healthLink">
+                        <span class="material-symbols-outlined text-[16px]">favorite</span>
+                        <span>Health</span>
+                    </a>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal-card">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h2 id="modalTitle" class="text-sm font-extrabold text-slate-800">Thêm Sinh Viên Mới</h2>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="modalCloseBtn">&times;</button>
+            </div>
+            <form id="studentForm" class="p-6 space-y-4">
+                <input type="hidden" id="studentId" value="">
+
+                <div class="space-y-1">
+                    <label for="studentName" class="block text-xs font-bold text-slate-700">Họ và tên sinh viên <span class="text-rose-500">*</span></label>
+                    <input type="text" id="studentName" required placeholder="Ví dụ: Nguyễn Văn An" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="studentCode" class="block text-xs font-bold text-slate-700">Mã sinh viên</label>
+                        <input type="text" id="studentCode" placeholder="Ví dụ: SV001" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="studentClass" class="block text-xs font-bold text-slate-700">Lớp học <span class="text-rose-500">*</span></label>
+                        <input type="text" id="studentClass" list="classListData" required placeholder="Chọn hoặc nhập lớp" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                        <datalist id="classListData"></datalist>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="studentGender" class="block text-xs font-bold text-slate-700">Giới tính</label>
+                        <select id="studentGender" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                            <option value="">-- Chọn giới tính --</option>
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="studentDob" class="block text-xs font-bold text-slate-700">Ngày sinh</label>
+                        <input type="date" id="studentDob" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="studentEmail" class="block text-xs font-bold text-slate-700">Email liên hệ</label>
+                    <input type="email" id="studentEmail" placeholder="Ví dụ: sv@example.com" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+
+                <div class="space-y-1" id="accountControlGroup">
+                    <label class="block text-xs font-bold text-slate-700">Tài khoản đăng nhập hệ thống</label>
+                    <div id="accountStatusContainer" class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                        <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                            <input type="checkbox" id="autoCreateAccountCheckbox" checked class="w-4 h-4 text-ictu-600 rounded">
+                            <span>Tự động cấp tài khoản đăng nhập (Tên đăng nhập &amp; Mật khẩu theo Mã SV)</span>
+                        </label>
+                    </div>
+                    <input type="hidden" id="studentAccountId" value="">
+                </div>
+
+                <div class="space-y-1">
+                    <label for="studentScore" class="block text-xs font-bold text-slate-700">Điểm tổng kết (0.0 - 10.0) <span class="text-rose-500">*</span></label>
+                    <input type="number" id="studentScore" step="0.1" min="0" max="10" required placeholder="Ví dụ: 8.5" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    <div class="flex items-center gap-2 pt-1 text-[11px] text-slate-500 font-semibold">
+                        <span>Đánh giá học lực dự kiến:</span>
+                        <strong id="scoreRatingPreview" class="text-ictu-600">--</strong>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="modalCancelBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold shadow-sm shadow-ictu-600/30 flex items-center gap-1.5" id="saveStudentBtn">
+                        <span class="material-symbols-outlined text-[16px]">save</span>
+                        <span>Lưu thông tin</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal-card max-w-md">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h2 class="text-sm font-extrabold text-rose-600">Xác nhận xóa sinh viên</h2>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="deleteModalCloseBtn">&times;</button>
+            </div>
+            <div class="p-6 space-y-3">
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Bạn có chắc chắn muốn xóa sinh viên <strong id="deleteStudentName" class="text-rose-600"></strong> (Mã SV: <span id="deleteStudentId"></span>) khỏi hệ thống không? Hành động này không thể hoàn tác.
+                </p>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-2.5">
+                <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="deleteCancelBtn">Hủy</button>
+                <button type="button" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm shadow-rose-600/30 flex items-center gap-1.5" id="confirmDeleteBtn">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                    <span>Xóa vĩnh viễn</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="modal-overlay" id="lecturerStudentDetailModal">
+        <div class="modal-card max-w-lg">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-ictu-600">badge</span>
+                    <h2 class="text-sm font-extrabold text-slate-800">Hồ Sơ Sinh Viên Học Phần</h2>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" onclick="document.getElementById('lecturerStudentDetailModal').classList.remove('active')">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center gap-4 pb-4 border-b border-slate-100">
+                    <div id="lecModalStudentAvatar" class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                        SV
+                    </div>
+                    <div>
+                        <h4 id="lecModalStudentName" class="text-base font-extrabold text-slate-900">--</h4>
+                        <div class="flex items-center gap-2 pt-0.5">
+                            <span id="lecModalStudentCode" class="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold bg-ictu-50 text-ictu-700 border border-ictu-200">--</span>
+                            <span id="lecModalStudentClass" class="text-xs text-slate-500 font-semibold">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl">
+                        <span class="text-slate-400 font-semibold block text-[10px] uppercase">Giới tính</span>
+                        <strong id="lecModalStudentGender" class="text-slate-800 font-bold">--</strong>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl">
+                        <span class="text-slate-400 font-semibold block text-[10px] uppercase">Ngày sinh</span>
+                        <strong id="lecModalStudentDob" class="text-slate-800 font-bold">--</strong>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl">
+                        <span class="text-slate-400 font-semibold block text-[10px] uppercase">Email liên hệ</span>
+                        <strong id="lecModalStudentEmail" class="text-slate-800 font-bold truncate block">--</strong>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl">
+                        <span class="text-slate-400 font-semibold block text-[10px] uppercase">Điểm GPA tích lũy</span>
+                        <strong id="lecModalStudentScore" class="text-ictu-600 font-bold text-sm">--</strong>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl space-y-1">
+                    <span class="text-slate-400 font-semibold block text-[10px] uppercase">Đánh giá học lực</span>
+                    <strong id="lecModalStudentRank" class="text-slate-800 font-bold">--</strong>
+                </div>
+
+                <div class="pt-2 text-[11px] text-slate-400 italic text-center">
+                    Giảng viên chỉ có quyền xem thông tin để phục vụ giảng dạy, không có quyền sửa hoặc xóa hồ sơ sinh viên.
+                </div>
+            </div>
+            <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+                <button type="button" onclick="document.getElementById('lecturerStudentDetailModal').classList.remove('active')" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-all">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="lecturerUpdateProgressModal">
+        <div class="modal-card max-w-md">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-indigo-600">update</span>
+                    <h2 class="text-sm font-extrabold text-slate-800">Cập Nhật Tiến Độ Đồ Án</h2>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" onclick="document.getElementById('lecturerUpdateProgressModal').classList.remove('active')">&times;</button>
+            </div>
+            <form id="lecturerUpdateProgressForm" class="p-6 space-y-4">
+                <input type="hidden" id="lecturerProgressProjectId" value="">
+                <div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Đề tài đồ án</span>
+                    <strong id="lecturerProgressProjectTitle" class="text-xs font-bold text-slate-900 block mt-0.5">--</strong>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="lecturerProgressSelect" class="block text-xs font-bold text-slate-700">Mốc tiến độ <span class="text-rose-500">*</span></label>
+                    <select id="lecturerProgressSelect" required class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20">
+                        <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+                        <option value="Cập nhật lần 1">Cập nhật lần 1</option>
+                        <option value="Cập nhật lần 2">Cập nhật lần 2</option>
+                        <option value="Cập nhật lần 3">Cập nhật lần 3</option>
+                        <option value="Hoàn thành">Hoàn thành</option>
+                    </select>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" onclick="document.getElementById('lecturerUpdateProgressModal').classList.remove('active')" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm shadow-indigo-600/30 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">save</span>
+                        <span>Lưu Tiến Độ</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="changePwdModal">
+        <div class="modal-card max-w-md">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <h2 class="text-sm font-extrabold text-slate-800">Đổi Mật Khẩu</h2>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="closeChangePwdBtn">&times;</button>
+            </div>
+            <form id="changePwdForm" class="p-6 space-y-3">
+                <div class="space-y-1">
+                    <label for="oldPasswordInput" class="block text-xs font-bold text-slate-700">Mật khẩu cũ <span class="text-rose-500">*</span></label>
+                    <input type="password" id="oldPasswordInput" required autocomplete="current-password" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+                <div class="space-y-1">
+                    <label for="newPasswordInput" class="block text-xs font-bold text-slate-700">Mật khẩu mới (6 - 29 ký tự) <span class="text-rose-500">*</span></label>
+                    <input type="password" id="newPasswordInput" required minlength="6" maxlength="29" autocomplete="new-password" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+                <div class="space-y-1">
+                    <label for="confirmPasswordInput" class="block text-xs font-bold text-slate-700">Nhập lại mật khẩu mới <span class="text-rose-500">*</span></label>
+                    <input type="password" id="confirmPasswordInput" required minlength="6" maxlength="29" autocomplete="new-password" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="cancelChangePwdBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold shadow-sm shadow-ictu-600/30 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">key</span>
+                        <span>Lưu Mật Khẩu</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="submitAssignmentModal">
+        <div class="modal-card max-w-lg">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-ictu-600">upload_file</span>
+                    <h2 class="text-sm font-extrabold text-slate-800">Nộp Bài Tập Môn Học</h2>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="closeSubmitModalBtn">&times;</button>
+            </div>
+            <form id="submitAssignmentForm" class="p-6 space-y-4">
+                <input type="hidden" id="submitAssignmentId" value="">
+                
+                <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bài tập môn học cần nộp</span>
+                    <h4 id="submitAssignmentTitle" class="text-xs font-extrabold text-slate-900">--</h4>
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/60 text-[11px]">
+                        <div>
+                            <span class="text-slate-400 block font-medium">Học phần / Môn học:</span>
+                            <strong id="submitAssignmentSubject" class="text-indigo-600 font-bold">--</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block font-medium">Giảng viên nhận bài:</span>
+                            <strong id="submitAssignmentLecturer" class="text-slate-800 font-bold">--</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-indigo-50/70 border border-indigo-200/60 rounded-xl text-[11px] text-indigo-800 flex items-start gap-2.5">
+                    <span class="material-symbols-outlined text-[18px] text-indigo-600 shrink-0 mt-0.5">forward_to_inbox</span>
+                    <span>Bài làm của bạn sau khi nhấn nộp sẽ được gửi trực tiếp đến tài khoản giảng dạy của <strong><span id="submitAssignmentLecturerNotice">Giảng viên</span></strong> để chấm điểm và gửi phản hồi.</span>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="submitFileUrl" class="block text-xs font-bold text-slate-700">Tên tệp bài làm / Đường dẫn nộp bài <span class="text-rose-500">*</span></label>
+                    <input type="text" id="submitFileUrl" required placeholder="Ví dụ: bai_tap_tuan_3_sv06.zip hoặc link GitHub / Google Drive" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    <span class="text-[10px] text-slate-400 block">Hỗ trợ tệp nén hoặc link chia sẻ trực tuyến</span>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="submitNotes" class="block text-xs font-bold text-slate-700">Ghi chú nộp bài gửi giảng viên</label>
+                    <textarea id="submitNotes" rows="3" placeholder="Nhập ghi chú hoặc tóm tắt nội dung bài làm..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600"></textarea>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="cancelSubmitModalBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold shadow-sm shadow-ictu-600/30 flex items-center gap-1.5" id="confirmSubmitBtn">
+                        <span class="material-symbols-outlined text-[16px]">send</span>
+                        <span>Xác Nhận Nộp Bài</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="teacherGradeModal">
+        <div class="modal-card max-w-lg">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-amber-500">edit_note</span>
+                    <h2 class="text-sm font-extrabold text-slate-800">Cập Nhật Điểm &amp; Số Buổi Nghỉ Sinh Viên</h2>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="closeTeacherGradeModalBtn">&times;</button>
+            </div>
+            <form id="teacherGradeForm" class="p-6 space-y-4">
+                <input type="hidden" id="teacherGradeId" value="">
+                
+                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
+                    <div class="flex justify-between items-center">
+                        <h4 id="teacherGradeStudentName" class="text-xs font-bold text-slate-900">--</h4>
+                        <span id="teacherGradeSubject" class="text-[11px] font-bold text-ictu-600">--</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="teacherGradeAttendance" class="block text-xs font-bold text-slate-700">Điểm chuyên cần (10%)</label>
+                        <input type="number" step="0.1" min="0" max="10" id="teacherGradeAttendance" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="teacherGradeMidterm" class="block text-xs font-bold text-slate-700">Điểm giữa kỳ (30%)</label>
+                        <input type="number" step="0.1" min="0" max="10" id="teacherGradeMidterm" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="teacherGradeFinalExam" class="block text-xs font-bold text-slate-700">Điểm thi cuối kỳ (60%) <span class="text-rose-500">*</span></label>
+                        <input type="number" step="0.1" min="0" max="10" required id="teacherGradeFinalExam" class="w-full px-3.5 py-2 bg-amber-50/50 border border-amber-300 rounded-xl text-xs font-bold text-amber-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="teacherGradeAbsences" class="block text-xs font-bold text-slate-700">Số buổi nghỉ học <span class="text-rose-500">*</span></label>
+                        <input type="number" step="1" min="0" max="15" required id="teacherGradeAbsences" class="w-full px-3.5 py-2 bg-rose-50/50 border border-rose-300 rounded-xl text-xs font-bold text-rose-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-600">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-semibold">Điểm tổng kết ước tính:</span>
+                    <strong id="teacherGradePreview" class="text-ictu-600 font-bold text-sm">--</strong>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="cancelTeacherGradeModalBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold shadow-sm shadow-ictu-600/30 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">save</span>
+                        <span>Lưu Điểm Số</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="teacherCreateAssignmentModal">
+        <div class="modal-card max-w-lg">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-indigo-600">add_task</span>
+                    <h2 class="text-sm font-extrabold text-slate-800">Giao Bài Tập Mới Cho Lớp</h2>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="closeCreateAssignModalBtn">&times;</button>
+            </div>
+            <form id="createAssignmentForm" class="p-6 space-y-4">
+                <div class="space-y-1">
+                    <label for="createAssignTitle" class="block text-xs font-bold text-slate-700">Tên bài tập / Đề bài <span class="text-rose-500">*</span></label>
+                    <input type="text" id="createAssignTitle" required placeholder="Ví dụ: Thiết kế cơ sở dữ liệu và viết Store Procedure" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="createAssignSubject" class="block text-xs font-bold text-slate-700">Môn học <span class="text-rose-500">*</span></label>
+                        <input type="text" id="createAssignSubject" required placeholder="Ví dụ: Cơ sở dữ liệu nâng cao" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="createAssignDeadline" class="block text-xs font-bold text-slate-700">Hạn nộp bài <span class="text-rose-500">*</span></label>
+                        <input type="text" id="createAssignDeadline" required placeholder="Ví dụ: 23:59 15/11/2026" autocomplete="off" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="createAssignDesc" class="block text-xs font-bold text-slate-700">Mô tả yêu cầu bài tập</label>
+                    <textarea id="createAssignDesc" rows="3" placeholder="Nhập hướng dẫn chi tiết và tiêu chí đánh giá..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600"></textarea>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="cancelCreateAssignModalBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-ictu-600 hover:bg-ictu-700 text-white text-xs font-bold shadow-sm shadow-ictu-600/30 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">publish</span>
+                        <span>Đăng Bài Tập</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="teacherGradeSubmissionModal">
+        <div class="modal-card max-w-lg">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-emerald-600">rate_review</span>
+                    <h2 class="text-sm font-extrabold text-slate-800">Chấm Điểm &amp; Nhận Xét Bài Nộp</h2>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer" id="closeTeacherGradeSubModalBtn">&times;</button>
+            </div>
+            <form id="teacherGradeSubmissionForm" class="p-6 space-y-4">
+                <input type="hidden" id="teacherGradeSubId" value="">
+                
+                <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                    <div class="flex justify-between items-start gap-2">
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sinh viên nộp bài</span>
+                            <h4 id="gradeSubStudentName" class="text-xs font-extrabold text-slate-900">--</h4>
+                            <p id="gradeSubStudentMeta" class="text-[11px] text-slate-500 font-medium">--</p>
+                        </div>
+                        <span id="gradeSubSubject" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200/60">--</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200/60 space-y-1 text-xs">
+                        <div class="text-slate-600"><span class="text-slate-400 font-medium">Bài tập:</span> <strong id="gradeSubAssignmentTitle" class="text-slate-800">--</strong></div>
+                        <div class="text-slate-600"><span class="text-slate-400 font-medium">Tệp bài làm:</span> <span id="gradeSubFile" class="font-mono text-indigo-600 font-bold">--</span></div>
+                        <div class="text-slate-600"><span class="text-slate-400 font-medium">Ghi chú của SV:</span> <span id="gradeSubNote" class="italic text-slate-500">--</span></div>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="gradeSubScore" class="block text-xs font-bold text-slate-700">Điểm số bài tập (Thang điểm 0 - 10) <span class="text-rose-500">*</span></label>
+                    <input type="number" step="0.1" min="0" max="10" required id="gradeSubScore" placeholder="Ví dụ: 9.0" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600">
+                </div>
+
+                <div class="space-y-1">
+                    <label for="gradeSubFeedback" class="block text-xs font-bold text-slate-700">Lời phê / Nhận xét của giảng viên gửi sinh viên</label>
+                    <textarea id="gradeSubFeedback" rows="3" placeholder="Nhập nhận xét chi tiết, khen ngợi hoặc lưu ý cần cải thiện..." class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-ictu-500/20 focus:border-ictu-600"></textarea>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                    <button type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50" id="cancelTeacherGradeSubModalBtn">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/30 flex items-center gap-1.5" id="saveTeacherGradeSubBtn">
+                        <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                        <span>Lưu Điểm &amp; Gửi Nhận Xét</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sinhvien.js') }}"></script>
+</body>
+</html>

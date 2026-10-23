@@ -1,0 +1,139 @@
+name: hethongqlsv
+version: '3.8'
+
+services:
+  # Dịch vụ Database (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: hethongqlsv_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-student_db}
+    ports:
+      - "${DB_PORT:-3309}:3306"
+    volumes:
+      - hethongqlsv_db_data:/var/lib/mysql
+    networks:
+      - hethongqlsv-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Công cụ quản lý Database (phpMyAdmin)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: hethongqlsv_phpmyadmin
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+    ports:
+      - "${PMA_PORT:-8084}:80"
+    depends_on:
+      - db
+    networks:
+      - hethongqlsv-network
+    restart: unless-stopped
+
+  # Ứng dụng Web Python (Flask)
+  web:
+    build: 
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: hethongqlsv_web
+    command: ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app:app"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-mysql+pymysql://root:rootpassword@db:3306/student_db}
+      SECRET_KEY: ${SECRET_KEY:-default_secret_key_that_is_secure_enough_for_demo}
+      FLASK_ENV: ${FLASK_ENV:-production}
+    volumes:
+      - ./backend:/home/appuser/app/backend
+      - ./frontend:/home/appuser/app/frontend
+      - ./backups:/home/appuser/app/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hethongqlsv-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: hethongqlsv_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "${WEB_PORT:-8083}:80"
+    depends_on:
+      - web
+    networks:
+      - hethongqlsv-network
+    restart: unless-stopped
+
+  # Prometheus (Thu thập metrics)
+  prometheus:
+    image: prom/prometheus
+    container_name: hethongqlsv_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "${PROMETHEUS_PORT:-9092}:9090"
+    networks:
+      - hethongqlsv-network
+    restart: unless-stopped
+
+  # Grafana (Hiển thị biểu đồ)
+  grafana:
+    image: grafana/grafana
+    container_name: hethongqlsv_grafana
+    ports:
+      - "${GRAFANA_PORT:-3002}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - hethongqlsv-network
+    restart: unless-stopped
+
+  # Loki (Lưu trữ Log tập trung)
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: hethongqlsv_loki
+    ports:
+      - "${LOKI_PORT:-3102}:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - hethongqlsv-network
+    restart: unless-stopped
+
+  # Promtail (Thu thập Log container gửi về Loki)
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: hethongqlsv_promtail
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - hethongqlsv-network
+    restart: unless-stopped
+
+volumes:
+  hethongqlsv_db_data:
+
+networks:
+  hethongqlsv-network:
+    driver: bridge
