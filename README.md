@@ -1,6 +1,17 @@
-# Hệ Thống Quản Lý Sinh Viên
+# BÁO CÁO THỰC HÀNH: TRIỂN KHAI VÀ QUẢN TRỊ HỆ THỐNG PHẦN MỀM
+## ĐỀ 2: HỆ THỐNG QUẢN LÝ SINH VIÊN (CRUD SINH VIÊN, LỚP, ĐIỂM SỐ) - MYSQL + PHPMYADMIN
 
-Dự án Hệ thống Quản lý Sinh viên được xây dựng dựa trên kiến trúc phân tách rõ ràng giữa Backend (Python/Flask) và Frontend, điều phối hoàn toàn qua Docker Compose, phục vụ quản lý đào tạo, sinh viên, giảng viên, đồ án tốt nghiệp, thực tập và hội đồng.
+| Thông Tin Sinh Viên & Đề Tài | Chi Tiết |
+| :--- | :--- |
+| **Họ và tên sinh viên** | **Trần Quốc Huy** |
+| **Mã số sinh viên (MSSV)** | **DTC245090151** |
+| **Học phần** | Triển khai và Quản trị Hệ thống Phần mềm |
+| **Đề tài thực hiện** | **Đề 2:** Website Quản lý sinh viên (CRUD sinh viên, lớp, điểm số) - MySQL + phpMyAdmin |
+| **Repository GitHub** | [https://github.com/TrHuy2906/hethongqlsv](https://github.com/TrHuy2906/hethongqlsv) |
+
+---
+
+Dự án Hệ thống Quản lý Sinh viên được xây dựng dựa trên kiến trúc phân tách rõ ràng giữa Backend (Python/Flask) và Frontend, điều phối hoàn toàn qua Docker Compose, phục vụ quản lý đào tạo, sinh viên, giảng viên, điểm số và lớp học.
 
 ## 1. Mục tiêu
 - Cung cấp giải pháp quản lý sinh viên toàn diện theo đúng đặc tả đào tạo.
