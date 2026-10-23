@@ -244,6 +244,11 @@
                         <span class="material-symbols-outlined text-[16px]">add</span>
                         <span>Thêm Lớp Mới</span>
                     </button>
+
+                    <button id="exportLopBtn" class="h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer" title="Xuất danh sách lớp ra Excel/CSV">
+                        <span class="material-symbols-outlined text-[16px] text-emerald-600">download</span>
+                        <span>Xuất Excel</span>
+                    </button>
                 </div>
             </div>
 
@@ -263,6 +268,7 @@
                                 <th class="py-3 px-6">Tên Lớp Học</th>
                                 <th class="py-3 px-6">Chuyên Ngành</th>
                                 <th class="py-3 px-6">Niên Khóa</th>
+                                <th class="py-3 px-6 text-center">Sĩ Số</th>
                                 <th class="py-3 px-6">Cố Vấn Học Tập (GVCN)</th>
                                 <th class="py-3 px-6">Lớp Trưởng</th>
                                 <th class="py-3 px-6 text-right">Hành Động</th>
@@ -270,7 +276,7 @@
                         </thead>
                         <tbody id="lopTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
                             <tr>
-                                <td colspan="7" class="py-8 text-center text-slate-400">Đang tải danh sách lớp học...</td>
+                                <td colspan="8" class="py-8 text-center text-slate-400">Đang tải danh sách lớp học...</td>
                             </tr>
                         </tbody>
                     </table>

@@ -9,6 +9,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let lopList = [];
     let cnList = [];
     let nkList = [];
+    let studentList = [];
+
+    async function fetchStudents() {
+        try {
+            const res = await fetch('/students', {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (res.ok) {
+                studentList = await res.json();
+            }
+        } catch (e) {
+            console.error("Error fetching students for enrollment count", e);
+        }
+    }
 
     async function fetchChuyenNganh() {
         try {
@@ -116,6 +130,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statMajors) statMajors.textContent = cnList.length;
     }
 
+    function getStudentCountForClass(lop) {
+        if (!studentList || studentList.length === 0) return 0;
+        return studentList.filter(s => {
+            const cName = (s.class_name || '').toLowerCase().trim();
+            const lName = (lop.name || '').toLowerCase().trim();
+            const lCode = (lop.class_code || '').toLowerCase().trim();
+            return cName === lName || cName === lCode;
+        }).length;
+    }
+
     function filterAndRender() {
         const search = lopSearchInput ? lopSearchInput.value.toLowerCase().trim() : '';
         const majorVal = majorFilter ? majorFilter.value : 'ALL';
@@ -142,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lopTableBody.innerHTML = '';
 
         if (data.length === 0) {
-            lopTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-dim); padding: 24px;">Không tìm thấy lớp học nào</td></tr>';
+            lopTableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-dim); padding: 24px;">Không tìm thấy lớp học nào</td></tr>';
             return;
         }
 
@@ -153,16 +177,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const nkName = nk ? nk.name : (lop.cohort_name || 'Chưa rõ');
             const advisorHtml = lop.advisor ? `<i class="fa-solid fa-user-tie" style="color: var(--primary); margin-right: 4px;"></i> ${lop.advisor}` : '<span style="color: var(--text-muted); font-size: 12px;">Chưa phân công</span>';
             const monitorHtml = lop.monitor ? `<i class="fa-solid fa-user-graduate" style="color: var(--warning); margin-right: 4px;"></i> ${lop.monitor}` : '<span style="color: var(--text-muted); font-size: 12px;">Chưa bầu</span>';
+            const siSo = getStudentCountForClass(lop);
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${lop.class_code}</strong></td>
                 <td>${lop.name}</td>
                 <td><span class="score-good" style="padding: 2px 8px; border-radius: 10px; font-size: 11px;">${cnName}</span></td>
                 <td><span class="badge-class">${nkName}</span></td>
+                <td style="text-align: center;"><span class="badge-class" style="font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 9999px;">${siSo} SV</span></td>
                 <td>${advisorHtml}</td>
                 <td>${monitorHtml}</td>
-                <td>
-                    <div style="display: flex; gap: 6px;">
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                        <a href="/?search=${encodeURIComponent(lop.name)}" class="btn-secondary" style="padding: 4px 8px; font-size: 11px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Xem sinh viên của lớp">
+                            <i class="fa-solid fa-users"></i> Xem SV
+                        </a>
                         <button class="btn-secondary admin-only" style="padding: 4px 10px; font-size: 12px;" onclick="editLop(${lop.id})" title="Sửa thông tin lớp">
                             <i class="fa-solid fa-pen"></i> Sửa
                         </button>
@@ -179,6 +208,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lopSearchInput) lopSearchInput.addEventListener('input', filterAndRender);
     if (majorFilter) majorFilter.addEventListener('change', filterAndRender);
     if (cohortFilter) cohortFilter.addEventListener('change', filterAndRender);
+
+    function exportLopToCSV() {
+        if (!lopList || lopList.length === 0) {
+            alert('Không có dữ liệu lớp học để xuất');
+            return;
+        }
+        const headers = ["Mã Lớp", "Tên Lớp", "Chuyên Ngành", "Niên Khóa", "Sĩ Số", "Cố Vấn Học Tập", "Lớp Trưởng"];
+        const rows = lopList.map(l => {
+            const cn = cnList.find(x => x.id === l.major_id);
+            const nk = nkList.find(x => x.id === l.cohort_id);
+            const siSo = getStudentCountForClass(l);
+            return [
+                `"${(l.class_code || '').replace(/"/g, '""')}"`,
+                `"${(l.name || '').replace(/"/g, '""')}"`,
+                `"${(cn ? cn.name : l.major_name || '').replace(/"/g, '""')}"`,
+                `"${(nk ? nk.name : l.cohort_name || '').replace(/"/g, '""')}"`,
+                siSo,
+                `"${(l.advisor || '').replace(/"/g, '""')}"`,
+                `"${(l.monitor || '').replace(/"/g, '""')}"`
+            ].join(',');
+        });
+        const csvContent = "\uFEFF" + [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Danh_Sach_Lop_Hoc_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    document.getElementById('exportLopBtn')?.addEventListener('click', exportLopToCSV);
 
     document.getElementById('openLopModalBtn')?.addEventListener('click', () => {
         document.getElementById('lopModalTitle').textContent = 'Thêm Lớp Mới';
@@ -275,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function init() {
-        await Promise.all([fetchChuyenNganh(), fetchNienKhoa()]);
+        await Promise.all([fetchChuyenNganh(), fetchNienKhoa(), fetchStudents()]);
         await fetchLop();
     }
     init();

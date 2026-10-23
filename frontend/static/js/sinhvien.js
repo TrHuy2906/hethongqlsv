@@ -1906,3 +1906,42 @@ window.quickCreateStudentAccount = async function(id, name, code) {
         showToast('Lỗi máy chủ khi cấp tài khoản', 'error');
     }
 };
+
+window.exportStudentsToCSV = function() {
+    if (!allStudents || allStudents.length === 0) {
+        showToast('Không có dữ liệu sinh viên để xuất file', 'warning');
+        return;
+    }
+    const headers = ['STT', 'Mã Sinh Viên', 'Họ Và Tên', 'Lớp Sinh Hoạt', 'Email', 'Giới Tính', 'Ngày Sinh', 'Điểm GPA', 'Xếp Loại', 'Tài Khoản Liên Kết'];
+    const rows = allStudents.map((s, idx) => {
+        const rank = getAcademicRank(s.score);
+        return [
+            idx + 1,
+            `"${s.student_code || ''}"`,
+            `"${s.name || ''}"`,
+            `"${s.class || s.class_name || ''}"`,
+            `"${s.email || ''}"`,
+            `"${s.gender || ''}"`,
+            `"${s.dob || ''}"`,
+            s.score !== null ? Number(s.score).toFixed(1) : '',
+            `"${rank.label || ''}"`,
+            `"${s.account_username || 'Chưa cấp'}"`
+        ];
+    });
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Danh_Sach_Sinh_Vien_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Đã xuất danh sách sinh viên ra file Excel/CSV thành công!', 'success');
+};
+
+document.getElementById('exportStudentsBtn')?.addEventListener('click', () => {
+    window.exportStudentsToCSV();
+});

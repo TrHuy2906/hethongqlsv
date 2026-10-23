@@ -1,225 +1,381 @@
-let gradesList = [];
-let projectsList = [];
+let allGrades = [];
+let allStudentsList = [];
+let editingGradeId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentUser();
-    await loadProjects();
-    await loadGrades();
-    if (currentUser && currentUser.role === 0) {
-        loadMyGrade();
-    }
-    const urlParams = new URLSearchParams(window.location.search);
-    const projId = urlParams.get('project_id');
-    const councilId = urlParams.get('council_id');
-
-    if (councilId) {
-        // Lọc theo hội đồng
-        try {
-            const cRes = await fetch(`/councils/${councilId}`);
-            if (cRes.ok) {
-                const cData = await cRes.json();
-                const searchInput = document.getElementById('gradeSearchInput');
-                if (searchInput && cData.council_code) {
-                    searchInput.value = cData.council_code;
-                    showToast(`Đang lọc đề tài thuộc Hội đồng ${cData.council_code}`, 'info');
-                }
-            }
-        } catch (e) {}
-    }
-
-    if (projId && currentUser && (currentUser.role === 1 || currentUser.role === 2)) {
-        openEditGradeModal(parseInt(projId));
-    }
+    await loadStudentsForSelect();
+    await loadGradesData();
     setupEventListeners();
 });
 
-async function loadProjects() {
+async function loadStudentsForSelect() {
     try {
-        const res = await fetch('/projects');
+        const res = await fetch('/students');
         if (res.ok) {
-            projectsList = await res.json();
-            populateProjectSelect();
-        }
-    } catch (e) {
-    }
-}
-
-function populateProjectSelect() {
-    const sel = document.getElementById('gradeProjectSelect');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">-- Chọn đồ án cần chấm điểm --</option>';
-    projectsList.forEach(p => {
-        let isMine = false;
-        if (currentUser && currentUser.role === 1) {
-            isMine = (currentUser.lecturer_id && (p.lecturer_id === currentUser.lecturer_id || p.reviewer_id === currentUser.lecturer_id)) ||
-                     (currentUser.full_name && (p.lecturer_name === currentUser.full_name || p.reviewer_name === currentUser.full_name));
-        }
-        const tag = isMine ? ' [Phụ trách]' : '';
-        sel.innerHTML += `<option value="${p.id}">${p.project_code} - ${p.name} (SV: ${p.student_name || 'N/A'})${tag}</option>`;
-    });
-}
-
-async function loadMyGrade() {
-    const card = document.getElementById('studentGradeCard');
-    const content = document.getElementById('myGradeContent');
-    if (!card || !content) return;
-    card.style.display = 'block';
-
-    try {
-        const res = await fetch('/grades/my');
-        const data = await res.json();
-
-        if (!data.grade) {
-            content.innerHTML = `<p class="text-xs text-slate-500 italic py-2">${data.error || data.message || 'Chưa có dữ liệu điểm bảo vệ cho đồ án của bạn.'}</p>`;
-            return;
-        }
-
-        const g = data.grade;
-        let rankBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">Đang cập nhật</span>';
-        if (g.diem_tong_ket !== null) {
-            if (g.diem_tong_ket >= 9.0) rankBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">Xuất Sắc</span>';
-            else if (g.diem_tong_ket >= 8.0) rankBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 border border-blue-300">Giỏi</span>';
-            else if (g.diem_tong_ket >= 7.0) rankBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-indigo-100 text-indigo-800 border border-indigo-300">Khá</span>';
-            else if (g.diem_tong_ket >= 5.0) rankBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">Trung Bình</span>';
-            else rankBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">Chưa Đạt</span>';
-        }
-
-        content.innerHTML = `
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Điểm GV Hướng Dẫn</div>
-                    <div class="text-2xl font-black text-ictu-600 mt-1">${g.diem_gvhd !== null ? g.diem_gvhd : '--'}</div>
-                </div>
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Điểm GV Phản Biện</div>
-                    <div class="text-2xl font-black text-indigo-600 mt-1">${g.diem_gvpb !== null ? g.diem_gvpb : '--'}</div>
-                </div>
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">TB Hội Đồng</div>
-                    <div class="text-2xl font-black text-amber-600 mt-1">${g.diem_tbhd !== null ? g.diem_tbhd : '--'}</div>
-                </div>
-                <div class="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 text-center flex flex-col items-center justify-center">
-                    <div class="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider">Điểm Tổng Kết</div>
-                    <div class="text-3xl font-black text-emerald-700 mt-0.5">${g.diem_tong_ket !== null ? g.diem_tong_ket : '--'}</div>
-                    <div class="mt-1.5">${rankBadge}</div>
-                </div>
-            </div>
-        `;
-    } catch (e) {
-        content.innerHTML = '<p class="text-xs text-rose-500">Lỗi tải bảng điểm</p>';
-    }
-}
-
-async function loadGrades() {
-    const tbody = document.getElementById('gradesTableBody');
-    const search = document.getElementById('gradeSearchInput')?.value.trim() || '';
-
-    try {
-        const res = await fetch(`/grades?project_code=${encodeURIComponent(search)}`);
-        if (!res.ok) return;
-        gradesList = await res.json();
-        updateGradeStats();
-
-        if (gradesList.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-8 text-center text-slate-400">Chưa có bản ghi điểm nào.</td></tr>';
-            return;
-        }
-
-        const canGrade = currentUser && (currentUser.role === 1 || currentUser.role === 2);
-
-        tbody.innerHTML = gradesList.map(g => {
-            let finalBadge = '<span class="text-slate-300 font-mono text-xs">--</span>';
-            if (g.diem_tong_ket !== null && g.diem_tong_ket !== undefined) {
-                const val = parseFloat(g.diem_tong_ket);
-                if (val >= 8.0) {
-                    finalBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="material-symbols-outlined text-[12px]">star</span>${val}</span>`;
-                } else if (val >= 6.5) {
-                    finalBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">${val}</span>`;
-                } else if (val >= 5.0) {
-                    finalBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">${val}</span>`;
-                } else {
-                    finalBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">${val}</span>`;
-                }
+            allStudentsList = await res.json();
+            const sel = document.getElementById('gradeStudentSelect');
+            if (sel) {
+                sel.innerHTML = '<option value="">-- Chọn sinh viên --</option>' +
+                    allStudentsList.map(s => `<option value="${s.id}">${s.name} (${s.student_code || 'Chưa có MSV'} - ${s.class || s.class_name || 'Lớp'})</option>`).join('');
             }
-
-            return `
-                <tr class="hover:bg-slate-50/80 transition-colors">
-                    <td class="px-4 py-3.5 font-mono text-xs font-bold text-ictu-600">
-                        <a href="/doan?search=${encodeURIComponent(g.project_code || '')}" class="hover:underline flex items-center gap-1" title="Xem đề tài ở trang đồ án">
-                            <span>${g.project_code || 'N/A'}</span>
-                            <span class="material-symbols-outlined text-[13px] text-slate-400">open_in_new</span>
-                        </a>
-                    </td>
-                    <td class="px-4 py-3.5 font-bold text-slate-900 max-w-xs">${g.project_name || 'N/A'}</td>
-                    <td class="px-4 py-3.5">
-                        <div class="font-bold text-slate-800">${g.student_name || 'N/A'}</div>
-                        <div class="text-[11px] text-slate-400 font-mono">${g.student_code || ''}</div>
-                    </td>
-                    <td class="px-4 py-3.5 text-center font-bold text-slate-700">${g.diem_gvhd !== null ? g.diem_gvhd : '<span class="text-slate-300">--</span>'}</td>
-                    <td class="px-4 py-3.5 text-center font-bold text-slate-700">${g.diem_gvpb !== null ? g.diem_gvpb : '<span class="text-slate-300">--</span>'}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-slate-600">${g.diem_tv1 !== null ? g.diem_tv1 : '<span class="text-slate-300">--</span>'}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-slate-600">${g.diem_tv2 !== null ? g.diem_tv2 : '<span class="text-slate-300">--</span>'}</td>
-                    <td class="px-4 py-3.5 text-center text-xs text-slate-600">${g.diem_tv3 !== null ? g.diem_tv3 : '<span class="text-slate-300">--</span>'}</td>
-                    <td class="px-4 py-3.5 text-center font-bold text-amber-600">${g.diem_tbhd !== null ? g.diem_tbhd : '<span class="text-slate-300">--</span>'}</td>
-                    <td class="px-4 py-3.5 text-center">${finalBadge}</td>
-                    ${canGrade ? `
-                        <td class="px-4 py-3.5 text-right whitespace-nowrap">
-                            <button class="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-ictu-600 hover:text-ictu-700 transition-all shadow-xs" onclick="openEditGradeModal(${g.project_id})" title="Nhập / Sửa điểm">
-                                <span class="material-symbols-outlined text-[16px]">edit</span>
-                            </button>
-                        </td>
-                    ` : '<td class="px-4 py-3.5 text-slate-400 text-center lecturer-only">--</td>'}
-                </tr>
-            `;
-        }).join('');
-    } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="11" class="px-6 py-8 text-center text-rose-500">Lỗi tải danh sách điểm</td></tr>';
-    }
-}
-
-function updateGradeStats() {
-    const totalEl = document.getElementById('statTotalGraded');
-    const excEl = document.getElementById('statExcellentGrades');
-    const passEl = document.getElementById('statPassedGrades');
-    const avgEl = document.getElementById('statAverageGrade');
-
-    const gradedItems = gradesList.filter(g => g.diem_tong_ket !== null && g.diem_tong_ket !== undefined);
-
-    if (totalEl) totalEl.textContent = gradedItems.length;
-    if (excEl) excEl.textContent = gradedItems.filter(g => parseFloat(g.diem_tong_ket) >= 8.0).length;
-    if (passEl) passEl.textContent = gradedItems.filter(g => {
-        const val = parseFloat(g.diem_tong_ket);
-        return val >= 5.0 && val < 8.0;
-    }).length;
-
-    if (avgEl) {
-        if (gradedItems.length > 0) {
-            const sum = gradedItems.reduce((acc, g) => acc + parseFloat(g.diem_tong_ket), 0);
-            avgEl.textContent = (sum / gradedItems.length).toFixed(2);
-        } else {
-            avgEl.textContent = '0.0';
         }
+    } catch (e) {
     }
 }
 
-window.exportGradesToCsv = function() {
-    if (!gradesList || gradesList.length === 0) {
-        showToast('Không có dữ liệu điểm để xuất', 'error');
+async function loadGradesData() {
+    try {
+        const res = await fetch('/grades');
+        if (res.ok) {
+            allGrades = await res.json();
+            populateSubjectFilter();
+            renderGradesTable(allGrades);
+            updateGradeKPIs(allGrades);
+        } else {
+            showToast('Không thể tải danh sách bảng điểm', 'error');
+        }
+    } catch (e) {
+        showToast('Lỗi mạng khi tải bảng điểm', 'error');
+    }
+}
+
+function populateSubjectFilter() {
+    const sel = document.getElementById('subjectFilter');
+    if (!sel) return;
+    const currentVal = sel.value;
+    const subjects = [...new Set(allGrades.map(g => g.subject_name).filter(Boolean))];
+    sel.innerHTML = '<option value="ALL">Tất cả môn học</option>' +
+        subjects.map(name => `<option value="${name}">${name}</option>`).join('');
+    if (currentVal && subjects.includes(currentVal)) {
+        sel.value = currentVal;
+    }
+}
+
+function updateGradeKPIs(grades) {
+    const totalEl = document.getElementById('statTotalGraded');
+    const avgEl = document.getElementById('statAverageGrade');
+    const passRateEl = document.getElementById('statPassRate');
+    const excellentEl = document.getElementById('statExcellentGrades');
+
+    if (totalEl) totalEl.textContent = grades.length;
+
+    const valid = grades.filter(g => g.diem_tong_ket !== null && g.diem_tong_ket !== undefined);
+    if (valid.length === 0) {
+        if (avgEl) avgEl.textContent = '0.0';
+        if (passRateEl) passRateEl.textContent = '0%';
+        if (excellentEl) excellentEl.textContent = '0';
         return;
     }
-    const headers = ['Mã ĐA', 'Tên Đồ Án', 'Sinh Viên', 'MSV', 'Điểm GVHD', 'Điểm GVPB', 'TV1', 'TV2', 'TV3', 'TB Hội Đồng', 'Điểm Tổng Kết'];
-    const rows = gradesList.map(g => [
-        `"${g.project_code || ''}"`,
-        `"${(g.project_name || '').replace(/"/g, '""')}"`,
-        `"${(g.student_name || '').replace(/"/g, '""')}"`,
+
+    const avg = valid.reduce((acc, g) => acc + g.diem_tong_ket, 0) / valid.length;
+    if (avgEl) avgEl.textContent = avg.toFixed(1);
+
+    const passed = valid.filter(g => g.diem_tong_ket >= 4.0 && !g.is_banned).length;
+    const rate = Math.round((passed / valid.length) * 100);
+    if (passRateEl) passRateEl.textContent = `${rate}%`;
+
+    const exc = valid.filter(g => g.diem_tong_ket >= 8.0).length;
+    if (excellentEl) excellentEl.textContent = exc;
+}
+
+function renderGradesTable(data) {
+    const tbody = document.getElementById('gradesTableBody');
+    if (!tbody) return;
+
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="px-6 py-8 text-center text-slate-400">Không tìm thấy bản ghi điểm môn học nào phù hợp.</td></tr>';
+        return;
+    }
+
+    const isAdmin = currentUser && currentUser.role === 2;
+    const canManage = currentUser && (currentUser.role === 1 || currentUser.role === 2);
+
+    tbody.innerHTML = data.map(g => {
+        const isBanned = g.is_banned;
+        const tk = g.diem_tong_ket !== null && g.diem_tong_ket !== undefined ? Number(g.diem_tong_ket).toFixed(1) : '--';
+        
+        let statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Đang học</span>';
+        if (isBanned) {
+            statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700" title="Nghỉ ≥ 20% tổng số buổi">Cấm thi</span>';
+        } else if (g.diem_tong_ket !== null && g.diem_tong_ket !== undefined) {
+            if (g.diem_tong_ket >= 8.5) statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Xuất sắc</span>';
+            else if (g.diem_tong_ket >= 8.0) statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Giỏi</span>';
+            else if (g.diem_tong_ket >= 7.0) statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">Khá</span>';
+            else if (g.diem_tong_ket >= 5.5) statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700">Trung bình</span>';
+            else if (g.diem_tong_ket >= 4.0) statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700">Đạt (D)</span>';
+            else statusBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Học lại</span>';
+        }
+
+        const letterBadgeColor = {
+            'A': 'bg-emerald-100 text-emerald-800 font-extrabold',
+            'B+': 'bg-emerald-50 text-emerald-700 font-bold',
+            'B': 'bg-cyan-50 text-cyan-700 font-bold',
+            'C+': 'bg-indigo-50 text-indigo-700 font-bold',
+            'C': 'bg-slate-100 text-slate-700 font-semibold',
+            'D+': 'bg-amber-50 text-amber-700 font-semibold',
+            'D': 'bg-amber-100 text-amber-800 font-semibold',
+            'F': 'bg-rose-100 text-rose-700 font-extrabold'
+        }[g.letter_grade] || 'bg-slate-100 text-slate-500';
+
+        return `
+            <tr class="hover:bg-slate-50/80 transition-colors">
+                <td class="px-4 py-3 font-mono font-bold text-slate-700">${g.student_code || 'SV' + g.student_id}</td>
+                <td class="px-4 py-3">
+                    <strong class="text-slate-900 block">${g.student_name || 'Chưa rõ'}</strong>
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">${g.student_class || 'K61'}</span>
+                </td>
+                <td class="px-4 py-3">
+                    <div class="font-semibold text-slate-800">${g.subject_name}</div>
+                    <span class="text-[10px] text-slate-400 font-mono">${g.subject_code} • ${g.credits} tín chỉ</span>
+                </td>
+                <td class="px-4 py-3 text-center font-bold text-slate-700">${g.diem_chuyen_can !== null ? Number(g.diem_chuyen_can).toFixed(1) : '--'}</td>
+                <td class="px-4 py-3 text-center font-bold text-slate-700">${g.diem_giua_ky !== null ? Number(g.diem_giua_ky).toFixed(1) : '--'}</td>
+                <td class="px-4 py-3 text-center font-bold text-slate-700">${g.diem_cuoi_ky !== null ? Number(g.diem_cuoi_ky).toFixed(1) : '--'}</td>
+                <td class="px-4 py-3 text-center">
+                    <span class="text-sm font-black text-slate-900">${tk}</span>
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <span class="px-2 py-0.5 rounded-md text-xs ${letterBadgeColor}">${g.letter_grade || '--'}</span>
+                </td>
+                <td class="px-4 py-3 text-center font-bold text-slate-600">${g.gpa4 !== null ? Number(g.gpa4).toFixed(1) : '--'}</td>
+                <td class="px-4 py-3 text-center">${statusBadge}</td>
+                <td class="px-4 py-3 text-right admin-or-lecturer-only">
+                    ${canManage ? `
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button onclick="openEditGradeModal(${g.id})" class="h-7 px-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs flex items-center gap-1 cursor-pointer" title="Sửa điểm">
+                                <span class="material-symbols-outlined text-[14px]">edit</span>
+                                <span>Sửa</span>
+                            </button>
+                            ${isAdmin ? `
+                                <button onclick="deleteGradeRecord(${g.id}, '${g.subject_name.replace(/'/g, "\\'")}')" class="h-7 px-2 rounded-lg border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 text-xs font-semibold shadow-xs flex items-center gap-1 cursor-pointer" title="Xóa điểm">
+                                    <span class="material-symbols-outlined text-[14px]">delete</span>
+                                </button>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterGrades() {
+    const search = (document.getElementById('gradeSearchInput')?.value || '').toLowerCase().trim();
+    const subject = document.getElementById('subjectFilter')?.value || 'ALL';
+    const result = document.getElementById('resultFilter')?.value || 'ALL';
+
+    const filtered = allGrades.filter(g => {
+        const matchesSearch = !search ||
+            (g.student_name && g.student_name.toLowerCase().includes(search)) ||
+            (g.student_code && g.student_code.toLowerCase().includes(search)) ||
+            (g.subject_name && g.subject_name.toLowerCase().includes(search)) ||
+            (g.subject_code && g.subject_code.toLowerCase().includes(search));
+
+        const matchesSubject = (subject === 'ALL') || (g.subject_name === subject);
+
+        let matchesResult = true;
+        if (result === 'PASSED') matchesResult = g.diem_tong_ket >= 4.0 && !g.is_banned;
+        else if (result === 'EXCELLENT') matchesResult = g.diem_tong_ket >= 8.0 && !g.is_banned;
+        else if (result === 'FAILED') matchesResult = (g.diem_tong_ket !== null && g.diem_tong_ket < 4.0) || g.is_banned;
+        else if (result === 'BANNED') matchesResult = g.is_banned;
+
+        return matchesSearch && matchesSubject && matchesResult;
+    });
+
+    renderGradesTable(filtered);
+    updateGradeKPIs(filtered);
+}
+
+function setupEventListeners() {
+    document.getElementById('gradeSearchInput')?.addEventListener('input', filterGrades);
+    document.getElementById('subjectFilter')?.addEventListener('change', filterGrades);
+    document.getElementById('resultFilter')?.addEventListener('change', filterGrades);
+
+    // Live preview of calculated final grade in modal
+    const scoreInputs = ['scoreChuyenCan', 'scoreGiuaKy', 'scoreCuoiKy'];
+    scoreInputs.forEach(id => {
+        document.getElementById(id)?.addEventListener('input', updateScorePreview);
+    });
+
+    // Open add modal
+    document.getElementById('openEnterGradeModalBtn')?.addEventListener('click', () => {
+        editingGradeId = null;
+        document.getElementById('gradeModalTitle').textContent = 'Nhập Điểm Môn Học Mới';
+        document.getElementById('gradeId').value = '';
+        document.getElementById('gradeForm').reset();
+        document.getElementById('studentSelectGroup').style.display = 'block';
+        updateScorePreview();
+        document.getElementById('gradeModal').classList.add('active');
+    });
+
+    // Close modal
+    document.getElementById('closeGradeModalBtn')?.addEventListener('click', () => {
+        document.getElementById('gradeModal').classList.remove('active');
+    });
+    document.getElementById('cancelGradeModalBtn')?.addEventListener('click', () => {
+        document.getElementById('gradeModal').classList.remove('active');
+    });
+
+    // Form submit
+    document.getElementById('gradeForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await saveGradeRecord();
+    });
+
+    // Export Excel/CSV
+    document.getElementById('exportGradesBtn')?.addEventListener('click', exportGradesToCSV);
+}
+
+function updateScorePreview() {
+    const cc = parseFloat(document.getElementById('scoreChuyenCan')?.value);
+    const gk = parseFloat(document.getElementById('scoreGiuaKy')?.value);
+    const ck = parseFloat(document.getElementById('scoreCuoiKy')?.value);
+
+    const prev10 = document.getElementById('previewGrade10');
+    const prevL = document.getElementById('previewGradeLetter');
+    const prev4 = document.getElementById('previewGrade4');
+
+    if (isNaN(cc) || isNaN(gk) || isNaN(ck)) {
+        if (prev10) prev10.textContent = '--';
+        if (prevL) prevL.textContent = '--';
+        if (prev4) prev4.textContent = 'Hệ 4: --';
+        return;
+    }
+
+    const tk = (cc * 0.1) + (gk * 0.3) + (ck * 0.6);
+    const final10 = Math.round(tk * 100) / 100;
+    if (prev10) prev10.textContent = final10.toFixed(2);
+
+    let letter = 'F';
+    let gpa4 = 0.0;
+    if (final10 >= 8.5) { letter = 'A'; gpa4 = 4.0; }
+    else if (final10 >= 8.0) { letter = 'B+'; gpa4 = 3.5; }
+    else if (final10 >= 7.0) { letter = 'B'; gpa4 = 3.0; }
+    else if (final10 >= 6.5) { letter = 'C+'; gpa4 = 2.5; }
+    else if (final10 >= 5.5) { letter = 'C'; gpa4 = 2.0; }
+    else if (final10 >= 5.0) { letter = 'D+'; gpa4 = 1.5; }
+    else if (final10 >= 4.0) { letter = 'D'; gpa4 = 1.0; }
+
+    if (prevL) prevL.textContent = letter;
+    if (prev4) prev4.textContent = `Hệ 4: ${gpa4.toFixed(1)}`;
+}
+
+window.openEditGradeModal = function(id) {
+    const g = allGrades.find(item => item.id === id);
+    if (!g) return;
+
+    editingGradeId = id;
+    document.getElementById('gradeModalTitle').textContent = `Chỉnh Sửa Điểm: ${g.subject_name} (${g.student_name})`;
+    document.getElementById('gradeId').value = id;
+
+    const stdSelect = document.getElementById('gradeStudentSelect');
+    if (stdSelect) {
+        stdSelect.value = g.student_id;
+        document.getElementById('studentSelectGroup').style.display = 'none'; // Lock student on edit
+    }
+
+    document.getElementById('gradeSubjectName').value = g.subject_name || '';
+    document.getElementById('gradeSubjectCode').value = g.subject_code || '';
+    document.getElementById('gradeCredits').value = g.credits || 3;
+    document.getElementById('scoreSoBuoiNghi').value = g.so_buoi_nghi || 0;
+
+    document.getElementById('scoreChuyenCan').value = g.diem_chuyen_can !== null ? g.diem_chuyen_can : '';
+    document.getElementById('scoreGiuaKy').value = g.diem_giua_ky !== null ? g.diem_giua_ky : '';
+    document.getElementById('scoreCuoiKy').value = g.diem_cuoi_ky !== null ? g.diem_cuoi_ky : '';
+
+    updateScorePreview();
+    document.getElementById('gradeModal').classList.add('active');
+};
+
+async function saveGradeRecord() {
+    const student_id = document.getElementById('gradeStudentSelect')?.value;
+    const subject_name = document.getElementById('gradeSubjectName')?.value.trim();
+    const subject_code = document.getElementById('gradeSubjectCode')?.value.trim();
+    const credits = document.getElementById('gradeCredits')?.value;
+    const so_buoi_nghi = document.getElementById('scoreSoBuoiNghi')?.value;
+
+    const diem_chuyen_can = document.getElementById('scoreChuyenCan')?.value;
+    const diem_giua_ky = document.getElementById('scoreGiuaKy')?.value;
+    const diem_cuoi_ky = document.getElementById('scoreCuoiKy')?.value;
+
+    const payload = {
+        student_id: parseInt(student_id),
+        subject_name,
+        subject_code,
+        credits: parseInt(credits) || 3,
+        so_buoi_nghi: parseInt(so_buoi_nghi) || 0,
+        diem_chuyen_can: diem_chuyen_can !== '' ? parseFloat(diem_chuyen_can) : null,
+        diem_giua_ky: diem_giua_ky !== '' ? parseFloat(diem_giua_ky) : null,
+        diem_cuoi_ky: diem_cuoi_ky !== '' ? parseFloat(diem_cuoi_ky) : null
+    };
+
+    const isEdit = Boolean(editingGradeId);
+    const url = isEdit ? `/grades/${editingGradeId}` : '/grades';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    try {
+        const res = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message || (isEdit ? 'Cập nhật điểm thành công!' : 'Nhập điểm mới thành công!'), 'success');
+            document.getElementById('gradeModal').classList.remove('active');
+            await loadGradesData();
+        } else {
+            showToast(data.error || 'Lỗi lưu trữ điểm số', 'error');
+        }
+    } catch (e) {
+        showToast('Lỗi mạng khi kết nối máy chủ', 'error');
+    }
+}
+
+window.deleteGradeRecord = async function(id, name) {
+    if (!currentUser || currentUser.role !== 2) {
+        showToast('Chỉ Quản trị viên mới có quyền xóa bản ghi điểm', 'error');
+        return;
+    }
+    if (!confirm(`Bạn có chắc muốn xóa bản ghi điểm môn "${name}" này không?`)) return;
+
+    try {
+        const res = await fetch(`/grades/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message || 'Đã xóa bản ghi điểm thành công!', 'success');
+            await loadGradesData();
+        } else {
+            showToast(data.error || 'Lỗi khi xóa điểm', 'error');
+        }
+    } catch (e) {
+        showToast('Lỗi mạng khi kết nối máy chủ', 'error');
+    }
+};
+
+function exportGradesToCSV() {
+    if (allGrades.length === 0) {
+        showToast('Không có dữ liệu điểm để xuất file', 'warning');
+        return;
+    }
+    const headers = ['STT', 'Mã Sinh Viên', 'Họ Và Tên', 'Lớp', 'Môn Học', 'Số Tín Chỉ', 'Chuyên Cần (10%)', 'Giữa Kỳ (30%)', 'Cuối Kỳ (60%)', 'Điểm Tổng Kết', 'Điểm Chữ', 'GPA Hệ 4', 'Trạng Thái'];
+    const rows = allGrades.map((g, idx) => [
+        idx + 1,
         `"${g.student_code || ''}"`,
-        `"${g.diem_gvhd !== null ? g.diem_gvhd : ''}"`,
-        `"${g.diem_gvpb !== null ? g.diem_gvpb : ''}"`,
-        `"${g.diem_tv1 !== null ? g.diem_tv1 : ''}"`,
-        `"${g.diem_tv2 !== null ? g.diem_tv2 : ''}"`,
-        `"${g.diem_tv3 !== null ? g.diem_tv3 : ''}"`,
-        `"${g.diem_tbhd !== null ? g.diem_tbhd : ''}"`,
-        `"${g.diem_tong_ket !== null ? g.diem_tong_ket : ''}"`
+        `"${g.student_name || ''}"`,
+        `"${g.student_class || ''}"`,
+        `"${g.subject_name || ''}"`,
+        g.credits,
+        g.diem_chuyen_can !== null ? g.diem_chuyen_can : '',
+        g.diem_giua_ky !== null ? g.diem_giua_ky : '',
+        g.diem_cuoi_ky !== null ? g.diem_cuoi_ky : '',
+        g.diem_tong_ket !== null ? g.diem_tong_ket : '',
+        `"${g.letter_grade || ''}"`,
+        g.gpa4 !== null ? g.gpa4 : '',
+        `"${g.status || ''}"`
     ]);
 
     const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -227,123 +383,10 @@ window.exportGradesToCsv = function() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bang_diem_do_an_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `Bang_Diem_Mon_Hoc_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('Xuất tệp CSV thành công!', 'success');
-};
-
-window.openEditGradeModal = async function(projectId) {
-    let g = gradesList.find(item => item.project_id === projectId);
-    if (!g) {
-        try {
-            const res = await fetch(`/grades/${projectId}`);
-            if (res.ok) g = await res.json();
-        } catch (e) {}
-    }
-    const sel = document.getElementById('gradeProjectSelect');
-    if (sel) {
-        sel.value = projectId;
-        sel.disabled = true;
-    }
-
-    document.getElementById('scoreGvhd').value = (g && g.diem_gvhd !== null && g.diem_gvhd !== undefined) ? g.diem_gvhd : '';
-    document.getElementById('scoreGvpb').value = (g && g.diem_gvpb !== null && g.diem_gvpb !== undefined) ? g.diem_gvpb : '';
-    document.getElementById('scoreTv1').value = (g && g.diem_tv1 !== null && g.diem_tv1 !== undefined) ? g.diem_tv1 : '';
-    document.getElementById('scoreTv2').value = (g && g.diem_tv2 !== null && g.diem_tv2 !== undefined) ? g.diem_tv2 : '';
-    document.getElementById('scoreTv3').value = (g && g.diem_tv3 !== null && g.diem_tv3 !== undefined) ? g.diem_tv3 : '';
-
-    document.getElementById('gradeModal')?.classList.add('active');
-};
-
-function setupEventListeners() {
-    document.getElementById('gradeSearchInput')?.addEventListener('input', debounce(loadGrades, 300));
-    document.getElementById('exportGradesBtn')?.addEventListener('click', window.exportGradesToCsv);
-
-    const openBtn = document.getElementById('openEnterGradeModalBtn');
-    const modal = document.getElementById('gradeModal');
-    const closeBtn = document.getElementById('closeGradeModalBtn');
-    const cancelBtn = document.getElementById('cancelGradeModalBtn');
-    const form = document.getElementById('gradeForm');
-
-    openBtn?.addEventListener('click', () => {
-        const sel = document.getElementById('gradeProjectSelect');
-        if (sel) sel.disabled = false;
-        form?.reset();
-        modal?.classList.add('active');
-    });
-
-    closeBtn?.addEventListener('click', () => modal?.classList.remove('active'));
-    cancelBtn?.addEventListener('click', () => modal?.classList.remove('active'));
-
-    form?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const projectId = document.getElementById('gradeProjectSelect').value;
-        if (!projectId) {
-            showToast('Vui lòng chọn đồ án', 'error');
-            return;
-        }
-
-        const diem_gvhd = document.getElementById('scoreGvhd').value;
-        const diem_gvpb = document.getElementById('scoreGvpb').value;
-        const diem_tv1 = document.getElementById('scoreTv1').value;
-        const diem_tv2 = document.getElementById('scoreTv2').value;
-        const diem_tv3 = document.getElementById('scoreTv3').value;
-
-
-        for (const [val, label] of [
-            [diem_gvhd, 'Điểm GVHD'],
-            [diem_gvpb, 'Điểm GVPB'],
-            [diem_tv1, 'Điểm TV1'],
-            [diem_tv2, 'Điểm TV2'],
-            [diem_tv3, 'Điểm TV3']
-        ]) {
-            if (val !== '') {
-                const num = parseFloat(val);
-                if (isNaN(num) || num < 0 || num > 10) {
-                    showToast(`${label} không hợp lệ, phải từ 0 đến 10!`, 'error');
-                    return;
-                }
-            }
-        }
-
-        const payload = {
-            diem_gvhd: diem_gvhd !== '' ? parseFloat(diem_gvhd) : null,
-            diem_gvpb: diem_gvpb !== '' ? parseFloat(diem_gvpb) : null,
-            diem_tv1: diem_tv1 !== '' ? parseFloat(diem_tv1) : null,
-            diem_tv2: diem_tv2 !== '' ? parseFloat(diem_tv2) : null,
-            diem_tv3: diem_tv3 !== '' ? parseFloat(diem_tv3) : null
-        };
-
-        try {
-            const res = await fetch(`/grades/${projectId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await res.json();
-            if (res.ok) {
-                showToast('Lưu điểm đồ án thành công!', 'success');
-                modal?.classList.remove('active');
-                loadGrades();
-                if (currentUser && currentUser.role === 0) loadMyGrade();
-            } else {
-                showToast(data.error || 'Lưu điểm thất bại', 'error');
-            }
-        } catch (e) {
-            showToast('Lỗi mạng', 'error');
-        }
-    });
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
+    showToast('Đã xuất file bảng điểm Excel/CSV thành công!', 'success');
 }
