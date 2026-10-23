@@ -8,7 +8,7 @@
 ## MÔN: TRIỂN KHAI VÀ QUẢN TRỊ HỆ THỐNG PHẦN MỀM
 
 **ĐỀ TÀI:**  
-### TRIỂN KHAI VÀ QUẢN TRỊ HỆ THỐNG QUẢN LÝ SINH VIÊN TRÊN NỀN TẢNG CONTAINER DOCKER
+### HỆ THỐNG QUẢN LÝ SINH VIÊN
 
 ---
 
