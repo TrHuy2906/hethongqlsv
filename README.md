@@ -100,15 +100,31 @@ Hệ thống sẽ tự động build image `backend`, khởi tạo cơ sở dữ
 | **Prometheus** | **9092** | Tra cứu Metrics (`http://localhost:9092`) |
 | **Loki Log API** | **3102** | Cổng tiếp nhận và truy vấn Log tập trung |
 
-## 8. Tài Khoản Đăng Nhập Mặc Định
-- **Tài khoản:** `admin`
-- **Mật khẩu:** `admin123`
-- **Vai trò:** Quản trị viên (Role 2)
+## 8. Ba Commit Mốc Theo Đúng Yêu Cầu Đề Cương (Milestone Commits)
+Hệ thống được phát triển và kiểm soát phiên bản theo đúng tiến trình yêu cầu của giảng viên trong đề cương môn học:
+1. **Commit 1 (Yêu cầu 3 - Nginx Reverse Proxy):**
+   - Triển khai dịch vụ `nginx` (cổng `8083`) đứng trước Flask backend (`5000`).
+   - Cấu hình file `nginx/nginx.conf` với đầy đủ các Security Headers: `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `X-XSS-Protection: 1; mode=block`, `Referrer-Policy: strict-origin-when-cross-origin`.
+   - Giấu hoàn toàn cổng nội bộ của Flask Application và MySQL.
+2. **Commit 2 (Yêu cầu 4 - Giám sát Prometheus + Grafana):**
+   - Tích hợp `prometheus-flask-exporter` mở endpoint `/metrics` trên backend.
+   - Cấu hình Prometheus (`monitoring/prometheus.yml`) định kỳ cào dữ liệu hiệu năng (scrape interval 5s).
+   - Tích hợp Grafana (`http://localhost:3002`) với dashboard trực quan hóa thời gian thực: CPU, RAM, Request Rate, Response Latency, HTTP Status Codes (200, 4xx, 5xx).
+3. **Commit 3 (Yêu cầu 5 - Log tập trung Loki + Promtail & LogQL):**
+   - Triển khai Promtail (`monitoring/promtail-config.yml`) tự động đọc Docker container logs.
+   - Triển khai Loki (`monitoring/loki-config.yml` - cổng `3102`) tiếp nhận, đánh chỉ mục và lưu trữ log tập trung.
+   - Kết nối Loki Datasource trên Grafana và thực thi các câu truy vấn LogQL mẫu phục vụ điều tra sự cố.
 
-## 9. Phân Quyền Vai Trò (RBAC)
-- `Role 0 (Sinh viên)`: Tra cứu điểm cá nhân, đăng ký/hủy đề tài đồ án khi chờ duyệt, nộp báo cáo tiến độ, xem thực tập cá nhân.
-- `Role 1 (Giảng viên)`: Quản lý đề tài sinh viên hướng dẫn, duyệt đề tài, cập nhật 4 mốc tiến độ đồ án, nhập điểm hội đồng.
-- `Role 2 (Quản trị viên)`: Toàn quyền quản trị danh mục, người dùng, sinh viên, giảng viên, hội đồng, đồ án và phân công.
+## 9. Tài Khoản Đăng Nhập Mặc Định
+- **Mật khẩu mặc định toàn hệ thống:** **`123456`** *(Admin hỗ trợ cả `admin123`)*.
+- **Quản trị viên (Role 2):** `admin` / `123456` (Toàn quyền hệ thống, CRUD sinh viên, phân quyền, sao lưu).
+- **Sinh viên (Role 0):** `dtc1` / `123456` hoặc `sv1` / `123456` (Cổng học tập cá nhân, xem TKB, bảng điểm).
+- **Giảng viên (Role 1):** `gv1` / `123456` (Cổng giảng dạy, nhập điểm, giao bài tập).
+
+## 10. Phân Quyền Vai Trò (RBAC)
+- `Role 0 (Sinh viên)`: Tra cứu điểm cá nhân, xem thời khóa biểu, nộp bài tập, bị ẩn toàn bộ các nút quản trị.
+- `Role 1 (Giảng viên)`: Quản lý lớp phụ trách, chấm điểm môn học, giao bài tập.
+- `Role 2 (Quản trị viên)`: Toàn quyền quản trị danh mục, người dùng, sinh viên, giảng viên, sao lưu & phục hồi CSDL.
 
 ## 10. Danh Mục Nghiệp Vụ Chuẩn
 1. **Xác thực & Người dùng:** Đăng nhập, đăng xuất, đổi mật khẩu (6-29 ký tự, chống trùng mật khẩu cũ, khớp xác nhận), cấp nhanh tài khoản 1-click, đặt lại mật khẩu mặc định, validation email `@wru.vn`.
