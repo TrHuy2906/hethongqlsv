@@ -13,6 +13,8 @@ admin_ops_bp = Blueprint('admin_ops', __name__)
 @role_required(2)
 def get_system_overview():
     try:
+        avg_score_val = db.session.query(db.func.avg(Student.score)).scalar() or 0.0
+        good_students_cnt = Student.query.filter(Student.score >= 8.0).count()
         stats = {
             'total_students': Student.query.count(),
             'total_lecturers': Lecturer.query.count(),
@@ -24,6 +26,8 @@ def get_system_overview():
             'total_chuyennganh': ChuyenNganh.query.count(),
             'total_lop': Lop.query.count(),
             'total_nienkhoa': NienKhoa.query.count(),
+            'avg_score': round(float(avg_score_val), 1),
+            'good_students': good_students_cnt,
             'total_doan': DoAn.query.count(),
             'total_thuctap': ThucTap.query.count(),
             'total_hoidong': HoiDong.query.count()

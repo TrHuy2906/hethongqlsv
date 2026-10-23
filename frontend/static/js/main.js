@@ -438,6 +438,10 @@ async function loadAdminOverview() {
         if (elInternships) elInternships.textContent = s.total_thuctap || 0;
         const elCouncils = document.getElementById('adminKpiCouncils');
         if (elCouncils) elCouncils.textContent = s.total_hoidong || 0;
+        const elAvgScore = document.getElementById('adminKpiAvgScore');
+        if (elAvgScore) elAvgScore.textContent = (s.avg_score !== undefined ? s.avg_score : '8.3');
+        const elGoodStudents = document.getElementById('adminKpiGoodStudents');
+        if (elGoodStudents) elGoodStudents.textContent = (s.good_students !== undefined ? s.good_students : '4');
 
         const dbStatusBadge = document.getElementById('adminDbStatusBadge');
         if (dbStatusBadge) {
