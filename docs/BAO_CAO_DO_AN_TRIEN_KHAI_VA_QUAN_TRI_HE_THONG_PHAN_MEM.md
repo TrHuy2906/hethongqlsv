@@ -72,19 +72,21 @@ Mặc dù em đã nỗ lực vận dụng các kiến thức về DevOps, Contai
 
 ---
 
-## DANH MỤC CÁC BẢNG BIỂU VÀ HÌNH VẼ
+## DANH MỤC CÁC BẢNG BIỂU VÀ HÌNH VẼ MINH HỌA THỰC TẾ
 
-- **Hình 1.1:** Sơ đồ luồng dữ liệu nghiệp vụ Quản lý Sinh viên
-- **Hình 2.1:** Sơ đồ Kiến trúc triển khai 8 dịch vụ container
-- **Hình 2.2:** Mô hình mạng ảo `hethongqlsv-network` và lưu trữ Volume
-- **Hình 3.1:** Cơ chế điều phối yêu cầu qua Nginx Reverse Proxy
-- **Hình 4.1:** Giao diện quản trị CSDL qua phpMyAdmin
-- **Hình 4.2:** Quy trình sao lưu và phục hồi CSDL tự động
-- **Hình 5.1:** Luồng thu thập dữ liệu Metrics (Prometheus) và Logs (Promtail -> Loki)
-- **Hình 5.2:** Bảng điều khiển Grafana System Overview Dashboard
+- **Hình 1.1:** Giao diện Đăng nhập Hệ thống Quản lý Sinh viên (Web Gateway Nginx cổng 8083) (`docs/screenshots/01_dang_nhap.png`)
+- **Hình 1.2:** Giao diện Phân hệ Quản lý Sinh viên (CRUD hồ sơ đào tạo) (`docs/screenshots/02_quan_ly_sinh_vien.png`)
+- **Hình 1.3:** Giao diện Phân hệ Quản lý Lớp học và Chuyên ngành đào tạo (`docs/screenshots/03_quan_ly_lop_hoc.png`)
+- **Hình 1.4:** Giao diện Phân hệ Quản lý Điểm số & Xếp loại học lực sinh viên (`docs/screenshots/04_quan_ly_diem_so.png`)
+- **Hình 4.1:** Giao diện Quản trị Cơ sở Dữ liệu MySQL 8.0 qua phpMyAdmin (Cổng 8084) (`docs/screenshots/05_phpmyadmin_db.png`)
+- **Hình 4.2:** Kịch bản Sao lưu & Phục hồi CSDL tự động qua PowerShell (`docs/screenshots/09_backup_restore_cli.png`)
+- **Hình 5.1:** Giao diện Giám sát Thu thập Chỉ số Metrics - Prometheus Targets (Cổng 9092) (`docs/screenshots/06_prometheus_metrics.png`)
+- **Hình 5.2:** Bảng điều khiển Trực quan hóa Hệ thống Grafana System Overview (Cổng 3002) (`docs/screenshots/07_grafana_dashboard.png`)
+- **Hình 5.3:** Giao diện Truy vấn Nhật ký Log tập trung bằng LogQL trên Grafana Explore (Loki) (`docs/screenshots/08_loki_logql_explore.png`)
 - **Bảng 2.1:** Danh mục 8 Container Dịch vụ trong hệ thống
 - **Bảng 4.1:** Bảng phân bổ cổng dịch vụ và tài khoản quản trị
 - **Bảng 6.1:** Kết quả kiểm thử tự động 45/45 tiêu chí chức năng & hạ tầng
+- **Bảng 6.2:** Bảng đối chiếu kết quả hoàn thành với 7 tiêu chí đánh giá thang điểm 10
 
 ---
 
