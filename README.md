@@ -41,13 +41,13 @@ Hệ thống tuân theo mô hình Client-Server tiêu chuẩn:
 │   ├── app.py                    # Điểm khởi chạy ứng dụng Flask & Gunicorn
 │   ├── auth.py                   # Xác thực, Session & Phân quyền Role
 │   ├── database.py               # Kết nối CSDL SQLAlchemy
-│   ├── models.py                 # Các Models CSDL (12 bảng)
+│   ├── models.py                 # Các Models CSDL (9 bảng chuẩn hóa theo Đề 2)
 │   ├── requirements.txt          # Thư viện phụ thuộc Python
-│   ├── Dockerfile                # Dockerfile đóng gói Backend
-│   └── [modules]/                # Các Blueprint chức năng (sinhvien, doan, diem, ...)
+│   ├── Dockerfile                # Dockerfile đóng gói Backend (Non-root user)
+│   └── [modules]/                # Các Blueprint chức năng (sinhvien, lop, diem, giangvien, ...)
 │
 ├── frontend/                      # Toàn bộ giao diện người dùng
-│   ├── templates/                # 12 Template HTML (login, sinhvien, doan, ...)
+│   ├── templates/                # 9 Template HTML (login, sinhvien, lop, diem, giangvien, ...)
 │   └── static/                   # Tài nguyên tĩnh
 │       ├── css/style.css         # CSS tokens, theme & animations
 │       └── js/*.js               # Client JavaScript tương tác DOM & API
@@ -133,19 +133,19 @@ Hệ thống được phát triển và kiểm soát phiên bản theo đúng ti
 - **Giảng viên (Role 1):** `gv1` / `123456` (Cổng giảng dạy, nhập điểm, giao bài tập).
 
 ## 10. Phân Quyền Vai Trò (RBAC)
-- `Role 0 (Sinh viên)`: Tra cứu điểm cá nhân, xem thời khóa biểu, nộp bài tập, bị ẩn toàn bộ các nút quản trị.
-- `Role 1 (Giảng viên)`: Quản lý lớp phụ trách, chấm điểm môn học, giao bài tập.
-- `Role 2 (Quản trị viên)`: Toàn quyền quản trị danh mục, người dùng, sinh viên, giảng viên, sao lưu & phục hồi CSDL.
+- `Role 0 (Sinh viên)`: Tra cứu điểm cá nhân, xem thời khóa biểu, lịch học, bị ẩn toàn bộ các nút quản trị.
+- `Role 1 (Giảng viên)`: Quản lý danh sách sinh viên theo lớp, nhập điểm môn học, đánh giá học lực.
+- `Role 2 (Quản trị viên)`: Toàn quyền quản trị danh mục, tài khoản, sinh viên, lớp học, sao lưu & phục hồi CSDL.
 
-## 10. Danh Mục Nghiệp Vụ Chuẩn
+## 11. Danh Mục Nghiệp Vụ Chuẩn (Đề 2)
 1. **Xác thực & Người dùng:** Đăng nhập, đăng xuất, đổi mật khẩu (6-29 ký tự, chống trùng mật khẩu cũ, khớp xác nhận), cấp nhanh tài khoản 1-click, đặt lại mật khẩu mặc định, validation email `@wru.vn`.
-2. **Sinh viên & Giảng viên:** Quản lý sinh viên (MSV, Lớp, Điểm GPA, Tài khoản), Giảng viên (MGV, Học vị, Bộ môn, Liên kết tài khoản).
-3. **Danh mục Đào tạo:** Khoa, Bộ môn, Chuyên ngành, Niên khóa (tự động tính trạng thái đào tạo/tốt nghiệp), Lớp học (GVCN, Lớp trưởng).
-4. **Đồ án Tốt nghiệp:** Đăng ký đề tài, hủy đề tài hợp lệ, GV duyệt, 4 mốc tiến độ chuẩn ("Chưa bắt đầu" -> "Cập nhật lần 1" -> "Cập nhật lần 2" -> "Cập nhật lần 3" -> "Hoàn thành"), nộp báo cáo.
-5. **Hội đồng & Điểm số:** Hội đồng 3 thành viên độc lập (không trùng nhau), tính TB Hội đồng `(TV1 + TV2 + TV3) / 3`, Điểm Tổng kết `(GVHD + GVPB + TBHĐ) / 3`, kiểm soát khoảng điểm 0.0 - 10.0.
-6. **Thực tập Doanh nghiệp:** Quản lý nơi thực tập, vị trí, thời gian, đánh giá, chống trùng lặp thực tập cho cùng một sinh viên.
+2. **Sinh viên & Giảng viên:** Quản lý hồ sơ sinh viên (Mã SV, Lớp, Điểm GPA, Tài khoản liên kết), Giảng viên (Mã GV, Học vị, Bộ môn, Khoa).
+3. **Danh mục Đào tạo:** Khoa, Bộ môn, Chuyên ngành, Niên khóa, Lớp học (phân bổ Cố vấn học tập, Lớp trưởng).
+4. **Quản lý Điểm số Môn học:** Nhập điểm chuyên cần (10%), giữa kỳ (30%), cuối kỳ (60%), tự động tính điểm tổng kết hệ 10, quy đổi sang điểm chữ (A, B+, B, C, D, F) và thang điểm GPA 4.0.
+5. **Theo dõi Chuyên cần & Điểm danh:** Quản lý số buổi nghỉ, tự động tính tỷ lệ vắng và cảnh báo cấm thi khi nghỉ $\ge 20\%$.
+6. **Sao lưu & Phục hồi CSDL Tự Động:** Quản lý các bản sao lưu SQL, kích hoạt sao lưu 1-click và kịch bản phục hồi thảm họa tự động (Disaster Recovery).
 
-## 11. Tài Liệu Kỹ Thuật Chi Tiết (Thư mục `docs/`)
+## 12. Tài Liệu Kỹ Thuật Chi Tiết (Thư mục `docs/`)
 - [Hướng dẫn triển khai chi tiết](docs/DEPLOYMENT_GUIDE.md)
 - [Kiến trúc phân tầng và bảo mật](docs/DEPLOYMENT_ARCHITECTURE.md)
 - [Quản trị cơ sở dữ liệu và bảo toàn dữ liệu](docs/DATABASE_ADMIN_GUIDE.md)
