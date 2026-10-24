@@ -103,9 +103,7 @@ class Lecturer(db.Model):
             'account_username': self.account.username if self.account else None,
             'gender': self.gender or 'Nam',
             'research_direction': self.research_direction or 'Hệ thống phân tán, AI & Kiến trúc phần mềm',
-            'education_level': self.education_level or 'Tiến sĩ',
-            'supervised_count': len(self.supervised_projects) if self.supervised_projects else 0,
-            'reviewed_count': len(self.reviewed_projects) if self.reviewed_projects else 0
+            'education_level': self.education_level or 'Tiến sĩ'
         }
 
 # Model Khoa

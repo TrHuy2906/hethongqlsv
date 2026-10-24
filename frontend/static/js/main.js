@@ -241,12 +241,6 @@ function renderDynamicSidebar(user) {
             isHome ? "window.switchStudentTab && window.switchStudentTab('classmates'); return false;" : null
         );
 
-        html += makeGroupTitle('Tốt Nghiệp & Thực Tập');
-        html += makeLink('/doan', 'menu_book', 'Đồ án tốt nghiệp', currentPath.includes('/doan'));
-        html += makeLink('/thuctap', 'business_center', 'Thực tập doanh nghiệp', currentPath.includes('/thuctap'));
-        html += makeLink('/hoidong', 'diversity_3', 'Hội đồng bảo vệ', currentPath.includes('/hoidong'));
-        html += makeLink('/diem', 'grade', 'Điểm đồ án tốt nghiệp', currentPath.includes('/diem'));
-
     } else if (user.role === 1) { // Giảng viên
         const isHome = currentPath === '/' || currentPath === '/index.html';
         html += makeGroupTitle('Cổng Giảng Dạy & Lớp Học');
@@ -257,12 +251,6 @@ function renderDynamicSidebar(user) {
             isHome ? "window.switchLecturerTab && window.switchLecturerTab('overview'); return false;" : null
         );
         html += makeLink(
-            isHome ? "javascript:void(0)" : "/?tab=schedule",
-            'calendar_month', 'Lịch giảng dạy & TKB',
-            isHome && activeTab === 'schedule',
-            isHome ? "window.switchLecturerTab && window.switchLecturerTab('schedule'); return false;" : null
-        );
-        html += makeLink(
             isHome ? "javascript:void(0)" : "/?tab=students",
             'groups', 'Lớp học & Sinh viên',
             isHome && activeTab === 'students',
@@ -270,44 +258,23 @@ function renderDynamicSidebar(user) {
         );
         html += makeLink(
             isHome ? "javascript:void(0)" : "/?tab=grades",
-            'military_tech', 'Điểm số & Chuyên cần',
+            'military_tech', 'Quản lý điểm số môn học',
             isHome && activeTab === 'grades',
             isHome ? "window.switchLecturerTab && window.switchLecturerTab('grades'); return false;" : null
         );
-        html += makeLink(
-            isHome ? "javascript:void(0)" : "/?tab=assignments",
-            'assignment', 'Bài tập & Bài nộp',
-            isHome && activeTab === 'assignments',
-            isHome ? "window.switchLecturerTab && window.switchLecturerTab('assignments'); return false;" : null
-        );
-        html += makeLink(
-            isHome ? "javascript:void(0)" : "/?tab=docs",
-            'description', 'Tài liệu học tập',
-            isHome && activeTab === 'docs',
-            isHome ? "window.switchLecturerTab && window.switchLecturerTab('docs'); return false;" : null
-        );
-
-        html += makeGroupTitle('Đào Tạo & Tốt Nghiệp');
-        html += makeLink('/doan', 'menu_book', 'Hướng dẫn Đồ án', currentPath.includes('/doan'));
-        html += makeLink('/thuctap', 'business_center', 'Theo dõi Thực tập', currentPath.includes('/thuctap'));
-        html += makeLink('/hoidong', 'diversity_3', 'Hội đồng chấm thi', currentPath.includes('/hoidong'));
-        html += makeLink('/diem', 'grade', 'Nhập điểm đồ án', currentPath.includes('/diem'));
         html += makeLink('/giangvien', 'co_present', 'Danh bạ Giảng viên', currentPath.includes('/giangvien'));
 
     } else { // Quản trị viên (Role 2)
         html += makeGroupTitle('Hệ Thống Quản Lý');
         html += makeLink('/', 'group', 'Quản lý sinh viên', currentPath === '/' || currentPath === '/index.html');
+        html += makeLink('/lop', 'class', 'Quản lý lớp học', currentPath.includes('/lop'));
+        html += makeLink('/diem', 'military_tech', 'Quản lý điểm số', currentPath.includes('/diem'));
         html += makeLink('/giangvien', 'co_present', 'Quản lý giảng viên', currentPath.includes('/giangvien'));
-        html += makeLink('/doan', 'assignment', 'Đồ án tốt nghiệp', currentPath.includes('/doan'));
-        html += makeLink('/thuctap', 'work', 'Thực tập doanh nghiệp', currentPath.includes('/thuctap'));
-        html += makeLink('/hoidong', 'groups', 'Hội đồng chấm thi', currentPath.includes('/hoidong'));
-        html += makeLink('/diem', 'military_tech', 'Điểm số & Học lực', currentPath.includes('/diem'));
 
         html += makeGroupTitle('Danh Mục Đào Tạo');
         html += makeLink('/khoa_bomon', 'apartment', 'Khoa & Bộ môn', currentPath.includes('/khoa_bomon'));
         html += makeLink('/chuyennganh', 'account_tree', 'Chuyên ngành', currentPath.includes('/chuyennganh'));
         html += makeLink('/nienkhoa', 'calendar_today', 'Niên khóa', currentPath.includes('/nienkhoa'));
-        html += makeLink('/lop', 'class', 'Lớp học', currentPath.includes('/lop'));
 
         html += makeGroupTitle('Quản Trị & Hạ Tầng');
         html += makeLink('/taikhoan', 'manage_accounts', 'Quản lý tài khoản', currentPath.includes('/taikhoan'));
